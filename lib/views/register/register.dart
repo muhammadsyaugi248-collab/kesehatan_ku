@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/models/newpage.dart';
+import 'package:kesehatan_ku/views/login_screen/login.dart';
 
 class register extends StatefulWidget {
   const register({super.key});
@@ -171,11 +171,7 @@ class _registerState extends State<register> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => NewPage(
-                                            email: emailcontroler.text,
-                                            nama: namacontroler.text,
-                                            kota: domcontroler.text,
-                                          ),
+                                          builder: (context) => LoginScreen(),
                                           // settings: RouteSettings(
                                           //   arguments: {
                                           //     'nama': namacontroler.text,

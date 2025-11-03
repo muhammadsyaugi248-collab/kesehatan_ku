@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/views/register.dart';
-
-// --- File: login_screen.dart ---
+import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
+import 'package:kesehatan_ku/views/deskop/deskop.dart';
+import 'package:kesehatan_ku/views/register/register.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,26 +19,29 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // 3. Fungsi yang akan dipanggil saat tombol Login ditekan
-  void _handleLogin() {
-    // Validasi form. Jika semua TextFormField valid
-    if (_formKey.currentState!.validate()) {
-      // Ambil nilai email dan password
-      String email = _emailController.text;
-      String password = _passwordController.text;
+  // void _handleLogin() {
+  //   // Validasi form. Jika semua TextFormField valid
+  //   if (_formKey.currentState!.validate()) {
+  //     // Ambil nilai email dan password
+  //     String email = _emailController.text;
+  //     String password = _passwordController.text;
 
-      // TODO: Di sini Anda akan menambahkan LOGIKA LOGIN nyata
-      // (misalnya: memanggil API, memeriksa database, dsb.)
+  //     // TODO: Di sini Anda akan menambahkan LOGIKA LOGIN nyata
+  //     // (misalnya: memanggil API, memeriksa database, dsb.)
 
-      // Contoh output di konsol:
-      print('Email: $email');
-      print('Password: $password');
+  //     // Contoh output di konsol:
+  //     print('Email: $email');
+  //     print('Password: $password');
 
-      // Contoh simulasi navigasi ke Home Screen setelah login sukses (ganti dengan rute Anda)
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login berhasil untuk: $email')));
-    }
-  }
+  //     // Contoh simulasi navigasi ke Home Screen setelah login sukses (ganti dengan rute Anda)
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Login berhasil untuk: $email'),
+  //         backgroundColor: Colors.green,
+  //       ),
+  //     );
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -126,7 +129,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   //  CONTINUE AS GUEST
                   TextButton(
                     onPressed: () {
-                      print('Continue as Guest ditekan!');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BottomNavigator(),
+                        ),
+                      );
                     },
                     child: const Text(
                       'Continue as Guest',
@@ -146,17 +154,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildLogoIcon() {
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        // Gradien warna seperti pada gambar
-        gradient: const LinearGradient(
-          colors: [Color(0xFF00C9A7), Color(0xFF90F35D)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: const Text("😨", style: TextStyle(fontSize: 80)),
+      width: 150,
+      height: 150,
+      padding: const EdgeInsets.all(20),
+      child: Image(image: AssetImage('assets/images/logo.jpg')),
+      // decoration: BoxDecoration(
+      //   borderRadius: BorderRadius.circular(15),
+      //   // Gradien warna seperti pada gambar
+      //   gradient: const LinearGradient(
+      //     colors: [Color(0xFF00C9A7), Color(0xFF90F35D)],
+      //     begin: Alignment.topLeft,
+      //     end: Alignment.bottomRight,
+      //   ),
+      // ),
     );
   }
 
@@ -214,7 +224,12 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: ElevatedButton(
-        onPressed: _handleLogin,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => deskop()),
+          );
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors
               .transparent, // Membuat background ElevatedButton transparan
@@ -233,7 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildRegisterButton() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       // Tombol Register tidak memiliki gradien, hanya border
       child: ElevatedButton(

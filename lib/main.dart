@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/views/login.dart';
+import 'package:kesehatan_ku/views/splash_screen/splashscreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
           seedColor: const Color.fromARGB(255, 255, 0, 0),
         ),
       ),
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }
