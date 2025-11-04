@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
-import 'package:kesehatan_ku/views/deskop/deskop.dart';
+import 'package:kesehatan_ku/views/halaman/deskop.dart';
 import 'package:kesehatan_ku/views/register/register.dart';
 
 class LoginScreen extends StatefulWidget {
