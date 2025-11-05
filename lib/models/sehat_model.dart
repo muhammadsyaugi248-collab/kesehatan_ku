@@ -20,7 +20,7 @@ class StudentModel {
       'id': id,
       'name': name,
       'email': email,
-      'class': telephon,
+      'telephon': telephon,
       //  'age': age,
     };
   }

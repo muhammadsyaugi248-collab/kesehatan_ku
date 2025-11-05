@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 
 // 1. PALET WARNA UTAMA (Color Palette)
 
-const Color headerColor1 = Color(
-  0xFF00C6FF,
-); // Gradient Biru Cerah (TIDAK DIPAKAI)
-const Color headerColor2 = Color(
-  0xFF0072FF,
-); // Gradient Biru Gelap (TIDAK DIPAKAI)
 const Color primaryAccent = Color(0xFF00A896); // Warna Aksen Utama/Home Icon
 const Color backgroundColor = Colors.white; // Latar Belakang Putih Bersih
 const Color textColorDark = Color(0xFF1F2937); // Hitam Gelap untuk Keterbacaan
 const Color iconAqua = Color(0xFF1FB2A5); // Ikon Kesehatan Fisik
 const Color iconGreen = Color(0xFF8BC34A); // Ikon Nutrisi
+
+// --- Warna Tambahan untuk Modul Baru (Disesuaikan dengan Gambar) ---
+const Color consultColor = Color(0xFF1EC0C7); // Biru Tosca untuk Konsultasi
+const Color locationColor = Color(0xFF5A66F9); // Biru Ungu untuk Fasilitas
+const Color historyColor = Color(0xFF6C757D); // Abu-abu gelap untuk Riwayat
+const Color medicationColor = Color(0xFFF7346B); // Merah muda/Pink untuk Obat
+const Color newsColor = Color(0xFFFF9900); // Orange untuk Berita
+const Color accessibilityColor = Color(0xFF9060F7); // Ungu untuk Aksesibilitas
+// -------------------------------------------------------------------
 
 // 2. UKURAN DAN DIMENSI (Spacing & Radius)
 
@@ -43,8 +46,9 @@ class deskop extends StatelessWidget {
 class HealthHomePage extends StatelessWidget {
   const HealthHomePage({super.key});
 
-  // Data menu Modul Kesehatan dengan penerapan warna spesifik
+  // Data menu Modul Kesehatan LENGKAP
   final List<Map<String, dynamic>> menuItems = const [
+    // Modul Lama (4)
     {
       'title': 'Kesehatan Fisik',
       'icon': Icons.favorite_border,
@@ -58,27 +62,54 @@ class HealthHomePage extends StatelessWidget {
     {
       'title': 'Kebugaran',
       'icon': Icons.fitness_center,
-      'color': Colors.deepOrange, // Tetap menggunakan Deep Orange untuk kontras
+      'color': Colors.deepOrange,
     },
     {
       'title': 'Kesehatan Mental',
       'icon': Icons.psychology_outlined,
-      'color': Colors.purple, // Tetap menggunakan Purple untuk kontras
+      'color': Colors.purple,
     },
+    // --- Modul Tambahan BARU (6) ---
+    {
+      'title': 'Konsultasi & Dokter',
+      'icon': Icons.medical_services,
+      'color': consultColor,
+    },
+    {
+      'title': 'Fasilitas Terdekat',
+      'icon': Icons.location_on_outlined,
+      'color': locationColor,
+    },
+    {
+      'title': 'Riwayat Kesehatan',
+      'icon': Icons.description_outlined,
+      'color': historyColor,
+    },
+    {
+      'title': 'Obat & Catatan',
+      'icon': Icons.medical_services_outlined, // Menggunakan ikon kapsul
+      'color': medicationColor,
+    },
+    {
+      'title': 'Berita & Edukasi',
+      'icon': Icons.article_outlined,
+      'color': newsColor,
+    },
+    {
+      'title': 'Aksesibilitas',
+      'icon': Icons.visibility_outlined,
+      'color': accessibilityColor,
+    },
+    // ----------------------
   ];
 
   @override
   Widget build(BuildContext context) {
     // Menghitung lebar kartu menu agar benar-benar pas 2 kolom
-    // Total Lebar = MediaQuery.of(context).size.width
-    // Padding kiri-kanan = 2 * pagePadding
-    // Spasi di tengah = cardSpacing
-    // Sisa Lebar untuk 2 kartu = Total Lebar - (2 * pagePadding) - cardSpacing
-    // Lebar 1 Kartu = Sisa Lebar / 2
     final double availableWidth =
         MediaQuery.of(context).size.width - (2 * pagePadding);
     final double cardWidth = (availableWidth - cardSpacing) / 2;
-    final double cardheight = 100;
+    const double cardheight = 100;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -143,18 +174,20 @@ class HealthHomePage extends StatelessWidget {
               // Spacing Antar Blok = 20.0
               const SizedBox(height: blockSpacing),
 
-              // Bagian 2: Kartu Utama (Profil Saya & Kartu Kesehatan)
-              // Menggunakan `SizedBox` dengan lebar terhitung untuk memastikan padding sama
+              // Bagian 2: Kartu Utama (Point Saya & Kartu Kesehatan)
               Row(
                 children: [
                   SizedBox(
                     width: cardWidth,
                     height: cardheight,
+                    // Mempertahankan perubahan 'Point Saya'
                     child: SimpleCard(
-                      title: 'Profil Saya',
-                      icon: Icons.person_outline,
+                      title: 'Point Saya',
+                      icon: Icons.star_border,
                       color: primaryAccent,
-                      onTap: () => print('Profil Saya diklik!'), // Aksi klik
+                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Point Saya diklik!')),
+                      ),
                     ),
                   ),
                   // Spacing Kartu Menu = 10.0
@@ -166,8 +199,11 @@ class HealthHomePage extends StatelessWidget {
                       title: 'Kartu Kesehatan',
                       icon: Icons.credit_card,
                       color: primaryAccent,
-                      onTap: () =>
-                          print('Kartu Kesehatan diklik!'), // Aksi klik
+                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Kartu Kesehatan diklik!'),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -213,7 +249,7 @@ class HealthHomePage extends StatelessWidget {
   }
 }
 
-// Widget untuk Kartu Kecil di Atas (Profil Saya, Kartu Kesehatan)
+// Widget untuk Kartu Kecil di Atas (Point Saya, Kartu Kesehatan)
 class SimpleCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -293,7 +329,9 @@ class MenuCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // Aksi klik
-          print('$title diklik!');
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('$title diklik!')));
         },
         borderRadius: BorderRadius.circular(cardRadius),
         child: SizedBox(

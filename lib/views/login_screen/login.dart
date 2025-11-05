@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:kesehatan_ku/database/db_helper.dart';
+import 'package:kesehatan_ku/preferences/preference_handler.dart';
 import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
-import 'package:kesehatan_ku/views/halaman/deskop.dart';
+
 import 'package:kesehatan_ku/views/register/register.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,6 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   // 1. Controller untuk mengambil input dari field Email dan Password
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   // 2. Kunci global untuk validasi form
   final _formKey = GlobalKey<FormState>();
@@ -101,7 +106,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
 
                   // 3. FIELD PASSWORD & LUPA PASSWORD
-                  _buildPasswordField(),
+                  _buildPasswordField(
+                    label: 'Password',
+                    hint: 'Enter your password',
+                    controller: _passwordController,
+                    isVisible: _isPasswordVisible,
+                    onToggle: (visible) {
+                      setState(() {
+                        _isPasswordVisible = visible;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password harus diisi';
+                      }
+                      if (value.length < 8) {
+                        return 'Password minimal 8 karakter';
+                      }
+                      return null;
+                    },
+                  ),
                   const SizedBox(height: 10),
 
                   Align(
@@ -189,25 +213,73 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildPasswordField() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: true, // Menyembunyikan teks (untuk password)
-      decoration: const InputDecoration(
-        labelText: 'Password',
-        hintText: 'Enter your password',
-        border: OutlineInputBorder(),
+  Widget _buildPasswordField({
+    required String label,
+    required String hint,
+    required TextEditingController controller,
+    required bool isVisible,
+    required Function(bool) onToggle,
+    required String? Function(String?) validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2C3E50),
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            obscureText:
+                !isVisible, // Menggunakan state isVisible untuk menyembunyikan
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            validator: validator,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Colors.grey),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25.0),
+                borderSide: const BorderSide(color: Colors.grey, width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.0),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25.0),
+                borderSide: const BorderSide(color: Colors.teal, width: 1.5),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25.0),
+                borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(25.0),
+                borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
+              ),
+              // Tombol toggle visibilitas
+              suffixIcon: IconButton(
+                icon: Icon(
+                  isVisible ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.grey,
+                ),
+                onPressed: () => onToggle(!isVisible),
+              ),
+            ),
+          ),
+        ],
       ),
-
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Password tidak boleh kosong';
-        }
-        if (value.length < 8) {
-          return 'Password minimal 8 karakter';
-        }
-        return null;
-      },
     );
   }
 
@@ -224,11 +296,58 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => deskop()),
-          );
+        onPressed: () async {
+          if (_formKey.currentState!.validate()) {
+            print(_emailController.text);
+            PreferenceHandler.saveLogin(true);
+            final data = await DbHelper.loginUser(
+              email: _emailController.text,
+              password: _passwordController.text,
+            );
+            if (data != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BottomNavigator(
+                    //email: emailController.text,
+                    //name: usernameController.text,
+                    //age: "",
+                  ),
+                ),
+              );
+            } else {
+              Fluttertoast.showToast(msg: "Email atau password salah");
+            }
+          } else {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  title: Text("Validation Error"),
+                  content: Text("Please fill all fields"),
+                  actions: [
+                    TextButton(
+                      child: Text("OK"),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    TextButton(
+                      child: Text("Dont have account? register"),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RegistrationApp(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors
@@ -255,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => register()),
+            MaterialPageRoute(builder: (context) => RegistrationApp()),
           );
         },
         style: OutlinedButton.styleFrom(

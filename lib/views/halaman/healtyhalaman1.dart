@@ -237,7 +237,7 @@ class _HealthyScreenState extends State<HealthyScreen> {
                 style: TextStyle(fontSize: 14, color: secondaryTextColor),
               ),
               Text(
-                'ini               Budi!',
+                'ini Budi!',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
