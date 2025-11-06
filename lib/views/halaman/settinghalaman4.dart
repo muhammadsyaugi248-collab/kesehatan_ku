@@ -54,12 +54,12 @@ class _SettingsPageState extends State<SettingsPage> {
             title: 'Account',
             children: [
               // Semua tile navigasi di bagian ini akan memiliki ikon panah (true)
-              _buildAccountTile(
-                context,
-                icon: Icons.person_outline,
-                title: 'Edit Profile',
-                showTrailingIcon: true,
-              ),
+              // _buildAccountTile(
+              //   context,
+              //   icon: Icons.person_outline,
+              //   title: 'Edit Profile',
+              //   showTrailingIcon: true,
+              // ),
               _buildAccountTile(
                 context,
                 icon: Icons.lock_outline,

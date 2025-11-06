@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter.dart';
+import 'package:kesehatan_ku/views/halaman/healtyhalaman1.dart';
+import 'package:kesehatan_ku/views/halaman/profilhalaman3.dart';
+
 // 1. PALET WARNA UTAMA (Color Palette)
 
 const Color primaryAccent = Color(0xFF00A896); // Warna Aksen Utama/Home Icon
@@ -37,68 +41,100 @@ class deskop extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(scaffoldBackgroundColor: backgroundColor),
-      home: const HealthHomePage(),
+      home: HealthHomePage(),
+    );
+  }
+}
+
+// ⭐ WIDGET BARU: Placeholder untuk halaman yang belum dibuat
+class PlaceholderWidget extends StatelessWidget {
+  final String title;
+  const PlaceholderWidget(this.title, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title), backgroundColor: primaryAccent),
+      body: Center(
+        child: Text(
+          'Ini adalah halaman $title',
+          style: const TextStyle(fontSize: 20, color: textColorDark),
+          textAlign: TextAlign.center,
+        ),
+      ),
     );
   }
 }
 
 // 3. STRUKTUR HALAMAN UTAMA (Scaffold)
 class HealthHomePage extends StatelessWidget {
-  const HealthHomePage({super.key});
+  HealthHomePage({super.key});
 
-  // Data menu Modul Kesehatan LENGKAP
-  final List<Map<String, dynamic>> menuItems = const [
+  // ⭐ PERBAIKAN KRITIS 1: HAPUS 'const' di sini!
+  // Menambahkan field 'route' untuk menunjuk ke halaman yang spesifik
+  final List<Map<String, dynamic>> menuItems = [
     // Modul Lama (4)
     {
       'title': 'Kesehatan Fisik',
       'icon': Icons.favorite_border,
       'color': iconAqua, // #1FB2A5
+      'route': const PlaceholderWidget('Kesehatan Fisik'), // Route 1
     },
     {
       'title': 'Nutrisi & Pola Makan',
       'icon': Icons.apple,
       'color': iconGreen, // #8BC34A
+      'route': const PlaceholderWidget('Nutrisi & Pola Makan'), // Route 2
     },
     {
       'title': 'Kebugaran',
       'icon': Icons.fitness_center,
       'color': Colors.deepOrange,
+      'route': const PlaceholderWidget('Kebugaran'), // Route 3
     },
     {
       'title': 'Kesehatan Mental',
       'icon': Icons.psychology_outlined,
       'color': Colors.purple,
+      'route': const PlaceholderWidget('Kesehatan Mental'), // Route 4
     },
     // --- Modul Tambahan BARU (6) ---
     {
       'title': 'Konsultasi & Dokter',
       'icon': Icons.medical_services,
       'color': consultColor,
+      // Ini akan menuju ke halaman Konsultasi Dokter Anda yang di-import
+      'route': const HealthApp(),
     },
     {
       'title': 'Fasilitas Terdekat',
       'icon': Icons.location_on_outlined,
       'color': locationColor,
+      'route': const PlaceholderWidget('Fasilitas Terdekat'),
     },
     {
       'title': 'Riwayat Kesehatan',
       'icon': Icons.description_outlined,
       'color': historyColor,
+      'route': const PlaceholderWidget('Riwayat Kesehatan'),
     },
     {
       'title': 'Obat & Catatan',
       'icon': Icons.medical_services_outlined, // Menggunakan ikon kapsul
       'color': medicationColor,
+      'route': const PlaceholderWidget('Obat & Catatan'),
     },
     {
       'title': 'Berita & Edukasi',
       'icon': Icons.article_outlined,
       'color': newsColor,
+      'route': const PlaceholderWidget('Berita & Edukasi'),
     },
     {
       'title': 'Aksesibilitas',
       'icon': Icons.visibility_outlined,
       'color': accessibilityColor,
+      'route': const PlaceholderWidget('Aksesibilitas'),
     },
     // ----------------------
   ];
@@ -128,9 +164,7 @@ class HealthHomePage extends StatelessWidget {
                   horizontal: 20,
                 ),
                 decoration: BoxDecoration(
-                  // Radius Kartu/Container = 15.0
                   borderRadius: BorderRadius.circular(cardRadius),
-                  // Menggunakan warna iconAqua dan primaryAccent yang konsisten
                   gradient: const LinearGradient(
                     colors: [iconAqua, primaryAccent],
                     begin: Alignment.topLeft,
@@ -138,20 +172,18 @@ class HealthHomePage extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      // Menggunakan salah satu warna gradient untuk bayangan
                       color: primaryAccent.withOpacity(0.4),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
                   ],
                 ),
-                child: Column(
+                child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Hello, saya sendiri! 👋',
                       style: TextStyle(
-                        // Judul Utama Header = 24.0, FontWeight.bold (w700)
                         fontSize: 20.0,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -161,7 +193,6 @@ class HealthHomePage extends StatelessWidget {
                     Text(
                       'Senin, 3 November 2025',
                       style: TextStyle(
-                        // Tanggal = 16.0, FontWeight.w400
                         fontSize: 12.0,
                         color: Colors.white70,
                         fontWeight: FontWeight.w400,
@@ -213,9 +244,9 @@ class HealthHomePage extends StatelessWidget {
               const SizedBox(height: blockSpacing),
 
               // Bagian 3: Judul Blok Modul Kesehatan
-              Text(
+              const Text(
                 'Modul Kesehatan',
-                style: const TextStyle(
+                style: TextStyle(
                   // Judul Blok = 18.0, FontWeight.bold (w700)
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
@@ -230,13 +261,14 @@ class HealthHomePage extends StatelessWidget {
                 spacing: cardSpacing,
                 runSpacing: cardSpacing,
                 children: menuItems.map((item) {
-                  // Menggunakan lebar kartu yang sudah dihitung
                   return SizedBox(
                     width: cardWidth,
                     child: MenuCard(
-                      title: item['title'],
-                      icon: item['icon'],
-                      color: item['color'],
+                      title: item['title'] as String,
+                      icon: item['icon'] as IconData,
+                      color: item['color'] as Color,
+                      // ⭐ PERBAIKAN KRITIS 2: Ambil nilai 'route' yang unik
+                      route: item['route'] as Widget?,
                     ),
                   );
                 }).toList(),
@@ -309,11 +341,13 @@ class MenuCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color color;
+  final Widget? route;
 
   const MenuCard({
     required this.title,
     required this.icon,
     required this.color,
+    this.route,
     super.key,
   });
 
@@ -328,7 +362,14 @@ class MenuCard extends StatelessWidget {
       // InkWell sudah ada, ini sudah benar
       child: InkWell(
         onTap: () {
-          // Aksi klik
+          // ⭐ PERBAIKAN KRITIS 3: Cek route sebelum navigasi
+          if (route != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => route!),
+            );
+          }
+          // Aksi klik (Snackbar)
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('$title diklik!')));

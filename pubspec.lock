@@ -296,6 +296,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
+  simple_vcard_parser:
+    dependency: "direct main"
+    description:
+      name: simple_vcard_parser
+      sha256: "390f29fa9b9d6bf1847f54dd21c2464b7614e1f59d1e9738ef3ac03686bbb52e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   sky_engine:
     dependency: transitive
     description: flutter

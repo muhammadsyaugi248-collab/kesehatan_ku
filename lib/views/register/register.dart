@@ -2,6 +2,8 @@
 
 // Impor package Flutter material (desain UI Google)
 import 'package:flutter/material.dart';
+import 'package:kesehatan_ku/database/db_helper.dart';
+import 'package:kesehatan_ku/models/user_model.dart';
 import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
 import 'package:kesehatan_ku/views/login_screen/login.dart';
 
@@ -101,6 +103,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void _handleRegistration() {
     // Validasi form keseluruhan
     if (_formKey.currentState!.validate()) {
+      final UserModel data = UserModel(
+        username: fullNameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+      );
+      DbHelper.registerUser(data);
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => LoginScreen()),
