@@ -1,10 +1,8 @@
-import 'package:intl/intl.dart';
-
 class BookingModel {
   final int? id;
   final String doctorName;
   final String specialty;
-  final DateTime dateTime;
+  final dynamic dateTime;
   final double price;
   final int points;
   final bool isActive;
@@ -31,7 +29,7 @@ class BookingModel {
       'doctorName': doctorName,
       'specialty': specialty,
       // 🧠 Simpan tanggal sebagai teks dengan intl
-      'dateTime': DateFormat('yyyy-MM-dd HH:mm').format(dateTime),
+      'dateTime': dateTime,
       'price': price,
       'points': points,
       'isActive': isActive ? 1 : 0,
@@ -46,7 +44,7 @@ class BookingModel {
       id: map['id'],
       doctorName: map['doctorName'],
       specialty: map['specialty'],
-      dateTime: DateFormat('yyyy-MM-dd HH:mm').parse(map['dateTime']),
+      dateTime: map['dateTime'],
       price: map['price'],
       points: map['points'],
       isActive: map['isActive'] == 1,
