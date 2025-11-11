@@ -1,49 +1,58 @@
-class Doctor {
+import 'package:flutter/material.dart';
+
+// Class untuk merepresentasikan data seorang dokter
+class DoctorModel {
+  final String id;
   final String name;
   final String specialization;
-  final String location;
   final String hospital;
-  final double fee;
-  final int pointsReward;
-  final String nextAvailable;
+  final String imageUrl;
+  final double rating;
+  final int reviews;
+  final double price;
 
-  Doctor({
+  DoctorModel({
+    required this.id,
     required this.name,
     required this.specialization,
-    required this.location,
     required this.hospital,
-    required this.fee,
-    required this.pointsReward,
-    required this.nextAvailable,
+    required this.imageUrl,
+    required this.rating,
+    required this.reviews,
+    required this.price,
   });
 }
 
-final List<Doctor> dummyDoctors = [
-  Doctor(
-    name: 'Dr. Sarah Johnson',
-    specialization: 'Practitioner',
-    location: 'Jakarta',
-    hospital: 'RS Columbia Hospital',
-    fee: 150000.0,
-    pointsReward: 300,
-    nextAvailable: 'Today, 2:00 PM',
+// Data dummy untuk ditampilkan di daftar
+final List<DoctorModel> dummyDoctors = [
+  DoctorModel(
+    id: 'd001',
+    name: 'Dr. Arifin Sudiro, Sp.Jp',
+    specialization: 'Jantung & Pembuluh Darah',
+    hospital: 'RS Jantung Harapan Kita',
+    imageUrl: 'https://placehold.co/100x100/1EC0C7/FFFFFF/png?text=A',
+    rating: 4.8,
+    reviews: 125,
+    price: 150000,
   ),
-  Doctor(
-    name: 'Dr. John Chen',
-    specialization: 'Dentist',
-    location: 'Jakarta',
-    hospital: 'Klinik Utama Sentosa',
-    fee: 120000.0,
-    pointsReward: 200,
-    nextAvailable: 'Tomorrow, 10:00 AM',
+  DoctorModel(
+    id: 'd002',
+    name: 'Dr. Karina Putri, Sp.PD',
+    specialization: 'Penyakit Dalam',
+    hospital: 'RS Umum Pusat Nasional',
+    imageUrl: 'https://placehold.co/100x100/00A896/FFFFFF/png?text=K',
+    rating: 4.9,
+    reviews: 301,
+    price: 120000,
   ),
-  Doctor(
-    name: 'Dr. Anya Sharma',
-    specialization: 'Cardiologist',
-    location: 'Jakarta',
-    hospital: 'Jaya Clinic',
-    fee: 200000.0,
-    pointsReward: 400,
-    nextAvailable: 'Nov 2, 3:00 PM',
+  DoctorModel(
+    id: 'd003',
+    name: 'Dr. Bima Satria, Sp.A',
+    specialization: 'Anak',
+    hospital: 'Klinik Anak Ceria',
+    imageUrl: 'https://placehold.co/100x100/F7346B/FFFFFF/png?text=B',
+    rating: 4.7,
+    reviews: 98,
+    price: 180000,
   ),
 ];

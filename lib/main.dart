@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
-import 'package:kesehatan_ku/views/halaman/profilhalaman3.dart';
-import 'package:kesehatan_ku/views/halaman/settinghalaman4.dart';
-import 'package:kesehatan_ku/views/login_screen/login.dart';
 import 'package:kesehatan_ku/views/splash_screen/splashscreen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 

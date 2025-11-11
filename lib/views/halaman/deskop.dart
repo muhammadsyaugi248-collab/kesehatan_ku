@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter.dart';
-import 'package:kesehatan_ku/views/halaman/healtyhalaman1.dart';
-import 'package:kesehatan_ku/views/halaman/profilhalaman3.dart';
+import 'package:kesehatan_ku/models/dokter.dart';
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart';
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter/tombolkonsultasi.dart';
 
 // 1. PALET WARNA UTAMA (Color Palette)
 
@@ -96,7 +95,7 @@ class HealthHomePage extends StatelessWidget {
       'title': 'Kesehatan Mental',
       'icon': Icons.psychology_outlined,
       'color': Colors.purple,
-      'route': const PlaceholderWidget('Kesehatan Mental'), // Route 4
+      'route': const MentalHealthScreen(), // Route 4
     },
     // --- Modul Tambahan BARU (6) ---
     {
@@ -104,7 +103,8 @@ class HealthHomePage extends StatelessWidget {
       'icon': Icons.medical_services,
       'color': consultColor,
       // Ini akan menuju ke halaman Konsultasi Dokter Anda yang di-import
-      'route': const HealthApp(),
+      // ⭐ SOLUSI: Memanggil DoctorListScreen dengan data dummyDoctors
+      'route': DoctorListScreen(doctors: dummyDoctors),
     },
     {
       'title': 'Fasilitas Terdekat',
