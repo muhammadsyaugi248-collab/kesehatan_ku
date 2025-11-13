@@ -79,8 +79,11 @@ class scaning extends StatelessWidget {
             ).copyWith(
               secondary: const Color(0xFF8E6CEF), // Aksen
               primary: const Color(0xFF6B45CC), // Ungu utama
-              background: const Color(
-                0xFFF0F2F5,
+              background: const Color.fromARGB(
+                255,
+                201,
+                231,
+                226,
               ), // Latar belakang abu-abu terang
             ),
         fontFamily: 'Inter',

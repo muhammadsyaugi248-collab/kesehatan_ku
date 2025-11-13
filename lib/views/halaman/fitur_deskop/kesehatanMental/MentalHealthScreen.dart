@@ -7,13 +7,6 @@ import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/header_w
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/mood_tracker_card.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/service_card.dart';
 // Import semua widget modular dari folder widgets/
-import 'widgets/education_item.dart';
-import 'widgets/header_widget.dart';
-import 'widgets/mood_tracker_card.dart';
-import 'widgets/service_card.dart';
-
-// Import JournalScreen untuk navigasi
-import 'journal_screen.dart';
 
 // --- DEFINISI KONSTANTA WARNA (Global) ---
 const Color kPrimaryColor = Color(0xFF67B545); // Hijau Utama

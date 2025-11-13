@@ -6,7 +6,12 @@ import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter/tombol
 // 1. PALET WARNA UTAMA (Color Palette)
 
 const Color primaryAccent = Color(0xFF00A896); // Warna Aksen Utama/Home Icon
-const Color backgroundColor = Colors.white; // Latar Belakang Putih Bersih
+const Color backgroundColor = Color.fromARGB(
+  255,
+  201,
+  231,
+  226,
+); // Latar Belakang Putih Bersih
 const Color textColorDark = Color(0xFF1F2937); // Hitam Gelap untuk Keterbacaan
 const Color iconAqua = Color(0xFF1FB2A5); // Ikon Kesehatan Fisik
 const Color iconGreen = Color(0xFF8BC34A); // Ikon Nutrisi

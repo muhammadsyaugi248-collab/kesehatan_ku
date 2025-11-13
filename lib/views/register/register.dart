@@ -174,7 +174,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     width: 150,
                     height: 150,
                     padding: const EdgeInsets.all(20),
-                    child: Image(image: AssetImage('assets/images/logo.jpg')),
+                    child: Image(image: AssetImage('assets/images/logo.png')),
                   ),
 
                   // 2. Judul

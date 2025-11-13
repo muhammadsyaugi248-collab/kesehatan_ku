@@ -181,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
       width: 150,
       height: 150,
       padding: const EdgeInsets.all(20),
-      child: Image(image: AssetImage('assets/images/logo.jpg')),
+      child: Image(image: AssetImage('assets/images/logo.png')),
       // decoration: BoxDecoration(
       //   borderRadius: BorderRadius.circular(15),
       //   // Gradien warna seperti pada gambar

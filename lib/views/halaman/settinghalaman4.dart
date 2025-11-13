@@ -23,14 +23,16 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC), // Background yang lebih terang
+      backgroundColor: const Color.fromARGB(255, 201, 231, 226),
+      // Background yang lebih terang
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: Icon(Icons.settings),
         title: const Text(
           'Settings',
-          style: TextStyle(fontWeight: FontWeight.bold, color: _primaryColor),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
+        backgroundColor: Color.fromARGB(255, 201, 231, 226),
         centerTitle: false,
         toolbarHeight: 80, // Tambahkan tinggi toolbar
         bottom: PreferredSize(
@@ -39,8 +41,8 @@ class _SettingsPageState extends State<SettingsPage> {
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: const Text(
-              'Manage your preferences',
-              style: TextStyle(fontSize: 14, color: _greyColor),
+              '~Manage your preferences',
+              style: TextStyle(fontSize: 14, color: Colors.black),
             ),
           ),
         ),

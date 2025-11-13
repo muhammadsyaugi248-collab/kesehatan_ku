@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart';
-import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/fitur_kesehatan_mental/journal_screen.dart';
 
 class ServiceCard extends StatelessWidget {
   final String title;

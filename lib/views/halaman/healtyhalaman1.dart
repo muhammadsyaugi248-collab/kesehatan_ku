@@ -111,7 +111,7 @@ class healty extends StatelessWidget {
           primarySwatch: primarySwatchColor,
           accentColor: primaryColor,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF4F7F9),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 201, 231, 226),
         fontFamily: 'Inter',
         useMaterial3: true,
       ),

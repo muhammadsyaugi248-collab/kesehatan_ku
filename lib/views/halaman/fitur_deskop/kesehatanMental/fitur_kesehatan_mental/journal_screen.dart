@@ -3,11 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/database/db_helper.dart';
 import 'package:kesehatan_ku/models/kesehatan_models/journal_screen_Model.dart';
-import 'package:uuid/uuid.dart'; // <--- PERBAIKAN: Eror 'Uuid'
-import 'models/journal_entry.dart';
-import 'db_helper.dart'; // <--- Import DbHelper Statis Anda
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart';
+import 'package:uuid/uuid.dart'; // FIX: Mengatasi 'Undefined class Uuid'
 
-// ... (Konstanta Warna)
+// Hapus import yang duplikat dan yang tidak perlu dari file ini
+// import 'package:kesehatan_ku/database/db_helper.dart';
+// import 'models/journal_entry.dart'; // Jika sudah diimport dengan package path di atas
+// import 'db_helper.dart';
 
 class JournalScreen extends StatefulWidget {
   const JournalScreen({super.key});
@@ -17,15 +19,13 @@ class JournalScreen extends StatefulWidget {
 }
 
 class _JournalScreenState extends State<JournalScreen> {
+  // --- STATE ---
   List<JournalEntry> _journalEntries = [];
+  final Uuid _uuid = const Uuid(); // FIX: Uuid kini dikenal
 
-  // Eror Uuid akan hilang setelah import dan pub get berhasil
-  final Uuid _uuid = const Uuid();
-
-  // Karena DbHelper Anda Statis, Anda tidak perlu field instance di sini.
-  // Jika menggunakan Instance (singleton), maka baris ini benar,
-  // tetapi Anda harus mengubah implementasi DbHelper.
-  // final dbHelper = DatabaseHelper.instance; // Hapus baris ini jika DbHelper Anda statis
+  // Kontroler untuk dialog input
+  final _titleController = TextEditingController();
+  final _contentController = TextEditingController();
 
   @override
   void initState() {
@@ -33,75 +33,155 @@ class _JournalScreenState extends State<JournalScreen> {
     _loadEntries();
   }
 
-  // Fungsi untuk memuat data dari DB menggunakan DbHelper statis
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
+  }
+
+  // --- FUNGSI CRUD ---
+
   void _loadEntries() async {
-    // Eror 'The getter 'instance'...' (Jika menggunakan implementasi statis)
+    // FIX: Mengakses DbHelper secara statis (tanpa .instance)
     final data = await DbHelper.getJournalEntries();
     setState(() {
       _journalEntries = data;
     });
   }
 
-  // CREATE: Menambahkan entri baru ke DB
-  void _addEntry(String title, String content) async {
+  void _addEntry(String newTitle, String newContent) async {
     final newEntry = JournalEntry(
       id: _uuid.v4(),
-      title: title,
-      content: content,
+      title: newTitle,
+      content: newContent,
       timestamp: DateTime.now(),
     );
     await DbHelper.insertJournalEntry(newEntry);
     _loadEntries();
   }
 
-  // UPDATE: Memperbarui entri di DB
-  void _updateEntry(
-    JournalEntry oldEntry,
-    String newTitle,
-    String newContent,
-  ) async {
+  void _updateEntry(JournalEntry oldEntry) async {
     final updatedEntry = JournalEntry(
       id: oldEntry.id,
-      title: newTitle,
-      content: newContent,
-      timestamp: DateTime.now(),
+      title: _titleController.text,
+      content: _contentController.text,
+      timestamp: DateTime.now(), // Memperbarui timestamp saat edit
     );
     await DbHelper.updateJournalEntry(updatedEntry);
     _loadEntries();
   }
 
-  // DELETE: Menghapus entri dari DB
   void _deleteEntry(String id) async {
     await DbHelper.deleteJournalEntry(id);
     _loadEntries();
   }
 
-  // ... (Sisa kode _showEntryDialog)
+  // --- DIALOG INPUT ---
+  void _showEntryDialog([JournalEntry? entry]) {
+    // Reset controllers dan isi jika mode edit
+    _titleController.text = entry?.title ?? '';
+    _contentController.text = entry?.content ?? '';
 
-  @override
-  Widget build(BuildContext context) {
-    // KOREKSI Eror 'The body might complete normally...'
-    return Scaffold(
-      // ... (seluruh kode body, AppBar, FAB, dll.)
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(entry == null ? 'Tambah Entri Baru' : 'Edit Entri'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Judul'),
+                ),
+                TextField(
+                  controller: _contentController,
+                  decoration: const InputDecoration(labelText: 'Isi Jurnal'),
+                  keyboardType: TextInputType.multiline,
+                  maxLines: null,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (entry == null) {
+                  _addEntry(_titleController.text, _contentController.text);
+                } else {
+                  _updateEntry(entry);
+                }
+                Navigator.of(ctx).pop();
+              },
+              child: Text(entry == null ? 'Simpan' : 'Perbarui'),
+            ),
+          ],
+        );
+      },
     );
   }
 
+  // --- WIDGET CARD ---
   Widget _buildJournalCard(JournalEntry entry) {
     return Card(
-      // ... (omitted for brevity)
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
-        // ...
+        title: Text(
+          entry.title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          '${entry.content}\n${entry.timestamp.day}/${entry.timestamp.month}/${entry.timestamp.year}',
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
         trailing: Row(
-          // KOREKSI Eror Typo: MainAxisSizeAxis.min menjadi MainAxisSize.min
+          // FIX TYPO: mainAxisSize.min
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ...
+            IconButton(
+              icon: Icon(Icons.edit, color: kPrimaryColor),
+              onPressed: () => _showEntryDialog(entry),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _deleteEntry(entry.id),
+            ),
           ],
         ),
-        // ...
       ),
     );
   }
 
-  // ... (Sisa kode)
+  @override
+  Widget build(BuildContext context) {
+    // FIX: Mengembalikan Scaffold
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Jurnal Harian'),
+        backgroundColor: kPrimaryColor,
+      ),
+      body: _journalEntries.isEmpty
+          ? const Center(
+              child: Text('Belum ada entri jurnal. Tambahkan yang pertama!'),
+            )
+          : ListView.builder(
+              itemCount: _journalEntries.length,
+              itemBuilder: (context, index) {
+                return _buildJournalCard(_journalEntries[index]);
+              },
+            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showEntryDialog(),
+        backgroundColor: kPrimaryColor,
+        child: const Icon(Icons.add, color: kBackgroundColor),
+      ),
+    );
+  }
 }

@@ -1,111 +1,102 @@
-// File: mental_health_screen.dart
+// File: lib/widgets/mood_tracker_card.dart
 
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/education_item.dart';
-import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/fitur_kesehatan_mental/journal_screen.dart';
-import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/service_card.dart';
-// Asumsikan struktur folder Anda menggunakan package import
+// WAJIB: Import file yang mendefinisikan konstanta warna (kPrimaryColor, dll.)
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart'; // Asumsi path Anda
 
-// --- DEFINISI KONSTANTA WARNA (Global) ---
-// Bagian ini sangat penting untuk diakses oleh file modular
-const Color kPrimaryColor = Color(0xFF67B545);
-const Color kSecondaryColor = Color(0xFFE8F5E9);
-const Color kTextColorDark = Color(0xFF1F1F1F);
-const Color kTextColorLight = Color(0xFF757575);
-const Color kCardColor1 = Color(0xFFF9E7D8);
-const Color kCardColor2 = Color(0xFFD6E6F5);
-const Color kIconColor = Color(0xFF9E9E9E);
-const Color kBackgroundColor = Color(0xFFFFFFFF);
+class MoodTrackerCard extends StatelessWidget {
+  // Menggunakan StatelessWidget
+  // --- PARAMETER WAJIB DITAMBAHKAN ---
+  final int selectedMoodIndex;
+  final void Function(int) onMoodSelected;
 
-// (Class MentalHealthScreen dan State-nya di sini)
-// ... (omitted for brevity)
+  const MoodTrackerCard({
+    super.key,
+    required this.selectedMoodIndex,
+    required this.onMoodSelected,
+  });
 
-// Bagian yang dikoreksi: _buildPopularServices
-Widget _buildPopularServices() {
-  // Data service...
-  final List<Map<String, dynamic>> services = const [
-    {
-      'title': 'Konsultasi Online',
-      'icon': Icons.forum,
-      'color': kCardColor1,
-      'target': 'Consultation',
-    },
-    {
-      'title': 'Jurnal Harian',
-      'icon': Icons.book,
-      'color': kCardColor2,
-      'target': 'Journal',
-    },
-    {
-      'title': 'Tes Kepribadian',
-      'icon': Icons.assignment,
-      'color': kCardColor1,
-      'target': 'Test',
-    },
+  final List<IconData> moodIcons = const [
+    Icons.sentiment_very_satisfied,
+    Icons.sentiment_satisfied,
+    Icons.sentiment_neutral,
+    Icons.sentiment_dissatisfied,
+    Icons.sentiment_very_dissatisfied,
   ];
 
-  return SizedBox(
-    height: 150,
-    child: ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: services.length,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      itemBuilder: (context, index) {
-        final service = services[index];
-
-        return GestureDetector(
-          onTap: () {
-            if (service['target'] == 'Journal') {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (ctx) => const JournalScreen()),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Fitur ${service['title']} belum tersedia.'),
-                ),
-              );
-            }
-          },
-          child: Padding(
-            padding: EdgeInsets.only(
-              right: index == services.length - 1 ? 0 : 16,
-            ),
-            // KOREKSI UTAMA: return ServiceCard (bukan Service)
-            child: ServiceCard(
-              title: service['title'] as String,
-              icon: service['icon'] as IconData,
-              cardColor: service['color'] as Color,
-            ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
-// Bagian yang dikoreksi: _buildEducationCards
-Widget _buildEducationCards() {
-  final List<Map<String, dynamic>> educations = const [
-    {'title': 'Cara Mengatasi Burnout', 'subtitle': '5 Menit membaca'},
-    {'title': 'Tips Tidur Nyenyak', 'subtitle': '8 Menit mendengarkan'},
-    {'title': 'Melawan Stres di Tempat Kerja', 'subtitle': '10 Menit membaca'},
+  // Anda dapat menambahkan label yang sesuai
+  final List<String> moodLabels = const [
+    'Sangat Baik',
+    'Baik',
+    'Biasa',
+    'Buruk',
+    'Sangat Buruk',
   ];
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 24),
-    child: Column(
-      // KOREKSI: EducationItem dipanggil dengan benar
-      children: educations.map((item) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: EducationItem(
-            title: item['title'] as String,
-            subtitle: item['subtitle'] as String,
-          ),
-        );
-      }).toList(),
-    ),
-  );
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: kSecondaryColor,
+          borderRadius: BorderRadius.circular(16),
+          // FIX: Konstanta warna sekarang dikenali
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Bagaimana perasaan Anda hari ini?',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: kTextColorDark,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(moodIcons.length, (index) {
+                bool isSelected = index == selectedMoodIndex;
+                return GestureDetector(
+                  onTap: () => onMoodSelected(index), // Panggil callback
+                  child: Column(
+                    children: [
+                      Icon(
+                        moodIcons[index],
+                        size: 35,
+                        // FIX: Konstanta warna kPrimaryColor dan kIconColor dikenali
+                        color: isSelected ? kPrimaryColor : kIconColor,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        moodLabels[index],
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: kTextColorLight,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
-// ... (sisa kode MentalHealthScreen)
