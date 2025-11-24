@@ -15,7 +15,7 @@ class AllergyChip extends StatelessWidget {
       label: Text(
         allergy.name,
         // Dibuat lebih gelap agar kontras
-        style: TextStyle(fontSize: 14, color: Colors.red.shade900),
+        style: TextStyle(fontSize: 14, color: Colors.red.shade800),
       ),
       // Background dibuat lebih terang
       backgroundColor: Colors.red.shade100,

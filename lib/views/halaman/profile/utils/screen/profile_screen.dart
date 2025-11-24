@@ -527,6 +527,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
       ),
+      backgroundColor: Color.fromARGB(255, 201, 231, 226),
     );
   }
 }

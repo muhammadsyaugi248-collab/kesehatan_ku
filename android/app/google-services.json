@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "879929224342",
+    "project_id": "kesehatanku-project",
+    "storage_bucket": "kesehatanku-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:879929224342:android:5511d8725af1c69f56a6b7",
+        "android_client_info": {
+          "package_name": "com.ppkdqyy.kesehatan_ku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4Tl5kb1BkKUtYIvFYyNRZh_Qd7wDSZi8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
