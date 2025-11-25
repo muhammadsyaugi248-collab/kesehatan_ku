@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/models/dokter.dart';
+import 'package:kesehatan_ku/models/doktermodel.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter/tombolkonsultasi.dart';
 

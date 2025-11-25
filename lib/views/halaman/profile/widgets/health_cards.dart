@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/models/health_data.dart';
-import '../widgets/custom_card.dart';
+import 'package:kesehatan_ku/models/health_datamodel.dart';
+import 'custom_card.dart';
 
 // Impor widget pendukung yang sekarang publik dari health_widgets.dart
 import 'health_widgets.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/views/login_screen/login.dart';
+import 'package:kesehatan_ku/views/login_screen_sqflite/login.dart';
 
 class register extends StatefulWidget {
   const register({super.key});
@@ -171,7 +171,8 @@ class _registerState extends State<register> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => LoginScreen(),
+                                          builder: (context) =>
+                                              LoginScreensqflite(),
                                           // settings: RouteSettings(
                                           //   arguments: {
                                           //     'nama': namacontroler.text,

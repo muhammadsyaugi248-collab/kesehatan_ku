@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:kesehatan_ku/database/db_helper.dart';
-import 'package:kesehatan_ku/preferences/preference_handler.dart';
-import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
+// HAPUS ini kalau sudah tidak dipakai lagi
+// import 'package:kesehatan_ku/database/db_helper.dart';
 
-import 'package:kesehatan_ku/views/register/register.dart';
+import 'package:kesehatan_ku/preferences/preference_handler.dart';
+import 'package:kesehatan_ku/services/firebase.dart';
+import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
+import 'package:kesehatan_ku/views/register_firebase/register.dart';
+import 'package:kesehatan_ku/views/register_sqflite/register.dart';
+
+// ✅ TAMBAHKAN INI (sesuaikan path-nya dengan project kamu)
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,43 +19,15 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // 1. Controller untuk mengambil input dari field Email dan Password
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  // 2. Kunci global untuk validasi form
   final _formKey = GlobalKey<FormState>();
-
-  // 3. Fungsi yang akan dipanggil saat tombol Login ditekan
-  // void _handleLogin() {
-  //   // Validasi form. Jika semua TextFormField valid
-  //   if (_formKey.currentState!.validate()) {
-  //     // Ambil nilai email dan password
-  //     String email = _emailController.text;
-  //     String password = _passwordController.text;
-
-  //     // TODO: Di sini Anda akan menambahkan LOGIKA LOGIN nyata
-  //     // (misalnya: memanggil API, memeriksa database, dsb.)
-
-  //     // Contoh output di konsol:
-  //     print('Email: $email');
-  //     print('Password: $password');
-
-  //     // Contoh simulasi navigasi ke Home Screen setelah login sukses (ganti dengan rute Anda)
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Login berhasil untuk: $email'),
-  //         backgroundColor: Colors.green,
-  //       ),
-  //     );
-  //   }
-  // }
 
   @override
   void dispose() {
-    // Penting: Membuang controller saat widget dihapus untuk menghindari kebocoran memori.
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -59,13 +36,11 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Background body berwarna putih kehijauan muda sesuai gambar
       backgroundColor: const Color.fromARGB(255, 206, 243, 234),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Container(
-            // Gaya Box (Card) di tengah layar
             padding: const EdgeInsets.all(30.0),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -84,7 +59,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  // 1. LOGO / IKON
                   _buildLogoIcon(),
                   const SizedBox(height: 10),
                   const Text(
@@ -100,12 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   const SizedBox(height: 30),
-
-                  //  2. FIELD EMAIL
                   _buildEmailField(),
                   const SizedBox(height: 20),
-
-                  // 3. FIELD PASSWORD & LUPA PASSWORD
                   _buildPasswordField(
                     label: 'Password',
                     hint: 'Enter your password',
@@ -127,7 +97,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 10),
-
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -141,16 +110,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // 4. TOMBOL LOGIN
                   _buildLoginButton(),
                   const SizedBox(height: 15),
-
-                  // 5. TOMBOL REGISTER
                   _buildRegisterButton(),
                   const SizedBox(height: 15),
-
-                  //  CONTINUE AS GUEST
                   TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -174,23 +137,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Helper Methods untuk Membangun UI per Komponen
-
   Widget _buildLogoIcon() {
     return Container(
       width: 150,
       height: 150,
       padding: const EdgeInsets.all(20),
-      child: Image(image: AssetImage('assets/images/logo.png')),
-      // decoration: BoxDecoration(
-      //   borderRadius: BorderRadius.circular(15),
-      //   // Gradien warna seperti pada gambar
-      //   gradient: const LinearGradient(
-      //     colors: [Color(0xFF00C9A7), Color(0xFF90F35D)],
-      //     begin: Alignment.topLeft,
-      //     end: Alignment.bottomRight,
-      //   ),
-      // ),
+      child: const Image(image: AssetImage('assets/images/logo.png')),
     );
   }
 
@@ -207,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
         if (value == null || value.isEmpty) {
           return 'Email tidak boleh kosong';
         }
-        // TODO: Tambahkan validasi email yang lebih kompleks jika perlu
         return null;
       },
     );
@@ -237,8 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 8),
           TextFormField(
             controller: controller,
-            obscureText:
-                !isVisible, // Menggunakan state isVisible untuk menyembunyikan
+            obscureText: !isVisible,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: validator,
             decoration: InputDecoration(
@@ -268,7 +218,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(25.0),
                 borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
               ),
-              // Tombol toggle visibilitas
               suffixIcon: IconButton(
                 icon: Icon(
                   isVisible ? Icons.visibility : Icons.visibility_off,
@@ -287,7 +236,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        // Gradien warna untuk tombol LOGIN
         gradient: const LinearGradient(
           colors: [Color(0xFF00C9A7), Color(0xFF90F35D)],
           begin: Alignment.topLeft,
@@ -298,47 +246,53 @@ class _LoginScreenState extends State<LoginScreen> {
       child: ElevatedButton(
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
-            print(_emailController.text);
-            PreferenceHandler.saveLogin(true);
-            final data = await DbHelper.loginUser(
-              email: _emailController.text,
-              password: _passwordController.text,
+            // Trim spasi biar ga ngacauin login
+            final email = _emailController.text.trim();
+            final password = _passwordController.text.trim();
+
+            // ✅ PANGGIL FIREBASE LOGIN
+            final user = await FirebaseService.loginUser(
+              email: email,
+              password: password,
             );
-            if (data != null) {
-              Navigator.push(
+
+            if (user != null) {
+              // kalau kamu punya simpan user di shared preferences, bisa taruh di sini
+              PreferenceHandler.saveLogin(true);
+              // contoh kalau kamu mau simpan email & uid (opsional, tergantung PreferenceHandler kamu)
+              // await PreferenceHandler.saveUserEmail(user.email ?? "");
+              // await PreferenceHandler.saveUserId(user.uid ?? "");
+
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => BottomNavigator(
-                    //email: emailController.text,
-                    //name: usernameController.text,
-                    //age: "",
-                  ),
-                ),
+                MaterialPageRoute(builder: (context) => BottomNavigator()),
               );
             } else {
-              Fluttertoast.showToast(msg: "Email atau password salah");
+              Fluttertoast.showToast(
+                msg: "Email atau password salah / akun tidak ditemukan",
+              );
             }
           } else {
             showDialog(
               context: context,
               builder: (context) {
                 return AlertDialog(
-                  title: Text("Validation Error"),
-                  content: Text("Please fill all fields"),
+                  title: const Text("Validation Error"),
+                  content: const Text("Please fill all fields"),
                   actions: [
                     TextButton(
-                      child: Text("OK"),
+                      child: const Text("OK"),
                       onPressed: () {
                         Navigator.pop(context);
                       },
                     ),
                     TextButton(
-                      child: Text("Dont have account? register"),
+                      child: const Text("Dont have account? register"),
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => RegistrationApp(),
+                            builder: (context) => RegistrationScreen(),
                           ),
                         );
                       },
@@ -350,9 +304,8 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors
-              .transparent, // Membuat background ElevatedButton transparan
-          shadowColor: Colors.transparent, // Menghilangkan bayangan
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
           padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5.0),
@@ -369,20 +322,16 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildRegisterButton() {
     return SizedBox(
       width: double.infinity,
-      // Tombol Register tidak memiliki gradien, hanya border
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => RegistrationApp()),
+            MaterialPageRoute(builder: (context) => RegistrationScreen()),
           );
         },
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 15),
-          side: const BorderSide(
-            color: Colors.grey,
-            width: 1,
-          ), // Border abu-abu
+          side: const BorderSide(color: Colors.grey, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),

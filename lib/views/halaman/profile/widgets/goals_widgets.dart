@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/models/health_data.dart';
+import 'package:kesehatan_ku/models/health_datamodel.dart';
 import 'package:kesehatan_ku/views/halaman/profile/utils/color_extensions.dart';
 // Menggunakan path relatif untuk impor lokal
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/database/priceformat.dart';
-import 'package:kesehatan_ku/models/dokter.dart';
+import 'package:kesehatan_ku/models/doktermodel.dart';
 
 // --- DIALOG BOOK APPOINTMENT (STATEFUL) ---
 

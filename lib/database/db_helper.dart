@@ -1,6 +1,6 @@
 // File: lib/db_helper.dart (Kode Lengkap)
 
-import 'package:kesehatan_ku/models/booking.dart';
+import 'package:kesehatan_ku/models/bookingmodel.dart';
 import 'package:kesehatan_ku/models/kesehatan_models/journal_screen_Model.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';

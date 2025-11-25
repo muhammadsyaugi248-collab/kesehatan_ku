@@ -1,40 +1,9 @@
-// Judul: Kode Dart/Flutter untuk Tampilan Registrasi "SehatPlus+" (Stateful dengan Validasi)
-
-// Impor package Flutter material (desain UI Google)
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/database/db_helper.dart';
-import 'package:kesehatan_ku/models/user_model.dart';
-import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
-import 'package:kesehatan_ku/views/login_screen/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:kesehatan_ku/models/userfirebasemodel.dart';
+import 'package:kesehatan_ku/services/firebase.dart';
+import 'package:kesehatan_ku/views/login_firebase/login.dart';
 
-// Fungsi utama aplikasi (titik masuk)
-void main() {
-  runApp(const RegistrationApp());
-}
-
-// Widget utama yang mendefinisikan tema dan struktur aplikasi
-class RegistrationApp extends StatelessWidget {
-  const RegistrationApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false, // Menyembunyikan banner debug
-      title: 'Kesehatanku Registration',
-      theme: ThemeData(
-        // Menggunakan warna teal sebagai warna utama untuk fokus input
-        primarySwatch: Colors.teal,
-        fontFamily: 'Inter', // Menggunakan font Inter (simulasi)
-      ),
-      // Memulai dengan halaman registrasi
-      home: const RegistrationScreen(),
-    );
-  }
-}
-
-// --- Halaman Registrasi (StatefulWidget) ---
-
-// Mengubah menjadi StatefulWidget untuk mengelola state input dan validasi
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
 
@@ -43,52 +12,50 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  // Controller untuk mengelola input dari setiap TextFormField
+  // Controller input
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
-  // GlobalKey untuk mengelola state Form dan menjalankan validasi
+  // Key form untuk validasi
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // State untuk visibilitas password
+  // Visibility password
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  // State untuk menentukan apakah tombol harus aktif
+  // Tombol enabled / disabled
   bool _isButtonEnabled = false;
+
+  // State user
+  Userfirebasemodel user = Userfirebasemodel();
 
   @override
   void initState() {
     super.initState();
-    // Tambahkan listener untuk memantau perubahan teks dan mengaktifkan tombol
+    // Listener untuk cek form terisi
     fullNameController.addListener(_checkFormFields);
     emailController.addListener(_checkFormFields);
-    phoneController.addListener(_checkFormFields);
     passwordController.addListener(_checkFormFields);
     confirmPasswordController.addListener(_checkFormFields);
   }
 
   @override
   void dispose() {
-    // Pastikan controller dihapus saat widget dibuang untuk mencegah kebocoran memori
     fullNameController.dispose();
     emailController.dispose();
-    phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
   }
 
-  // Fungsi untuk mengecek apakah semua field wajib sudah terisi
+  // Cek apakah semua field tidak kosong
   void _checkFormFields() {
     final bool currentlyEnabled =
         fullNameController.text.isNotEmpty &&
         emailController.text.isNotEmpty &&
-        phoneController.text.isNotEmpty &&
         passwordController.text.isNotEmpty &&
         confirmPasswordController.text.isNotEmpty;
 
@@ -99,62 +66,83 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
   }
 
-  // Fungsi saat tombol registrasi ditekan
-  void _handleRegistration() {
-    // Validasi form keseluruhan
-    if (_formKey.currentState!.validate()) {
-      final UserModel data = UserModel(
-        username: fullNameController.text,
-        email: emailController.text,
-        password: passwordController.text,
-      );
-      DbHelper.registerUser(data);
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-      );
-      // Jika valid, tampilkan snackbar sukses
+  // Handle register ditekan
+  Future<void> _handleRegistration() async {
+    // Validasi form
+    if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+          content: const Text("Mohon lengkapi data dengan benar."),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+      return;
+    }
+
+    // Optional: matikan tombol sementara
+    setState(() {
+      _isButtonEnabled = false;
+    });
+
+    try {
+      final result = await FirebaseService.registerUser(
+        email: emailController.text.trim(),
+        username: fullNameController.text.trim(),
+        password: passwordController.text,
+      );
+
+      setState(() {
+        user = result;
+      });
+
+      // Tampilkan sukses
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
           content: Text("Pendaftaran Berhasil!"),
           backgroundColor: Colors.teal,
         ),
       );
 
-      // Cetak data ke konsol
-      print('--- Data Registrasi ---');
-      print('Nama: ${fullNameController.text}');
-      print('Email: ${emailController.text}');
-      print('Telepon: ${phoneController.text}');
-      print('Password: ${passwordController.text}');
-      // Di aplikasi nyata, navigasi ke layar berikutnya (misalnya LoginScreen)
-      // Contoh: Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
-    } else {
-      // Jika tidak valid, tampilkan snackbar error
+      // Pindah ke login (replace agar tidak bisa kembali ke register dengan back)
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      // Tampilkan pesan error dari Firebase (email dipakai, network, dll)
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Mohon lengkapi data dengan benar."),
+          content: Text(e.message ?? "Register gagal (${e.code})"),
           backgroundColor: Colors.red.shade700,
         ),
       );
+    } catch (e) {
+      // Error lain (tidak terduga)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Terjadi error: $e"),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    } finally {
+      // Hidupkan lagi tombol kalau field masih terisi
+      _checkFormFields();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Scaffold memberikan struktur dasar (AppBar, Body, dll)
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FBFE), // Latar belakang putih kebiruan
+      backgroundColor: const Color(0xFFF8FBFE),
       body: Center(
-        // SingleChildScrollView memungkinkan konten digulir jika keyboard muncul
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 400), // Membatasi lebar
+            constraints: const BoxConstraints(maxWidth: 400),
             padding: const EdgeInsets.all(32.0),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24.0), // Sudut membulat
+              borderRadius: BorderRadius.circular(24.0),
               boxShadow: const [
                 BoxShadow(
                   color: Color.fromRGBO(149, 157, 165, 0.1),
@@ -164,20 +152,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ],
             ),
             child: Form(
-              key: _formKey, // Pasang GlobalKey ke Form
+              key: _formKey,
               child: Column(
-                mainAxisSize: MainAxisSize.min, // Menggunakan MainAxisSize.min
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 1. Icon Header
-                  Container(
+                  // Logo
+                  SizedBox(
                     width: 150,
                     height: 150,
-                    padding: const EdgeInsets.all(20),
-                    child: Image(image: AssetImage('assets/images/logo.png')),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Image.asset('assets/images/logo.png'),
+                    ),
                   ),
 
-                  // 2. Judul
                   const Text(
                     'Create Account',
                     textAlign: TextAlign.center,
@@ -189,7 +178,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                   const SizedBox(height: 4),
 
-                  // 3. Subjudul
                   RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
@@ -209,10 +197,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // 4. Form Fields
+                  // Full Name
                   _buildTextFormField(
                     label: 'Full Name',
-                    hint: 'John cena',
+                    hint: 'John Cena',
                     controller: fullNameController,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -221,6 +209,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       return null;
                     },
                   ),
+
+                  // Email
                   _buildTextFormField(
                     label: 'Email',
                     hint: 'your.email@example.com',
@@ -230,28 +220,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Email harus diisi';
                       }
-                      // Regex validasi email sederhana
                       if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                         return 'Format email tidak valid';
                       }
                       return null;
                     },
                   ),
-                  _buildTextFormField(
-                    label: 'Phone Number',
-                    hint: '+62 812 3456 7890',
-                    controller: phoneController,
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Nomor telepon harus diisi';
-                      }
 
-                      return null;
-                    },
-                  ),
-
-                  // Field Password
+                  // Password
                   _buildPasswordFormField(
                     label: 'Password',
                     hint: 'Enter your password',
@@ -273,7 +249,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     },
                   ),
 
-                  // Field Confirm Password
+                  // Confirm Password
                   _buildPasswordFormField(
                     label: 'Confirm Password',
                     hint: 'Confirm your password',
@@ -297,24 +273,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                   const SizedBox(height: 24),
 
-                  // 5. Tombol Register (Gradient)
+                  // Tombol Register (gradient)
                   Container(
                     height: 50,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.0),
-                      // Menggunakan LinearGradient untuk efek gradien
                       gradient: _isButtonEnabled
                           ? const LinearGradient(
                               colors: [Color(0xFF10B981), Color(0xFF06B6D4)],
                               begin: Alignment.centerLeft,
                               end: Alignment.centerRight,
                             )
-                          : null, // Tanpa gradien jika tombol dinonaktifkan
+                          : null,
                     ),
                     child: ElevatedButton(
                       onPressed: _isButtonEnabled ? _handleRegistration : null,
                       style: ElevatedButton.styleFrom(
-                        // Warna dasar tombol jika dinonaktifkan
                         backgroundColor: _isButtonEnabled
                             ? Colors.transparent
                             : Colors.grey.shade300,
@@ -322,14 +296,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8.0),
                         ),
-                        padding: EdgeInsets.zero, // Hapus padding default
+                        padding: EdgeInsets.zero,
                       ),
                       child: Text(
                         'Register',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          // Warna teks putih hanya jika tombol aktif
                           color: _isButtonEnabled
                               ? Colors.white
                               : Colors.grey.shade600,
@@ -340,16 +313,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                   const SizedBox(height: 16),
 
-                  // 6. Tombol Login (Secondary)
+                  // Tombol Login
                   OutlinedButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (context) => LoginScreen()),
                       );
-                      print('Tombol Login Ditekan!');
-                      // Di sini Anda akan menavigasi ke layar Login
-                      // Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
                     },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -370,16 +340,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                   const SizedBox(height: 16),
 
-                  // 7. Tautan Guest
+                  // Guest
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => BottomNavigator(),
-                        ),
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
                       );
-                      print('Continue as Guest Ditekan!');
                     },
                     child: const Text(
                       'Continue as Guest',
@@ -395,9 +362,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // --- Widget Pembantu (Refactored untuk menggunakan TextFormField) ---
-
-  // Widget pembantu untuk membuat TextFormField standar
+  // TEXT FIELD BIASA
   Widget _buildTextFormField({
     required String label,
     required String hint,
@@ -422,7 +387,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           TextFormField(
             controller: controller,
             keyboardType: keyboardType,
-            // Validasi dijalankan saat input kehilangan fokus
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: validator,
             decoration: InputDecoration(
@@ -445,12 +409,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 borderSide: const BorderSide(color: Colors.teal, width: 1.5),
               ),
               errorBorder: OutlineInputBorder(
-                // Gaya border saat error
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                // Gaya border saat error & fokus
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
               ),
@@ -461,7 +423,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  // Widget pembantu untuk membuat TextFormField Password
+  // TEXT FIELD PASSWORD
   Widget _buildPasswordFormField({
     required String label,
     required String hint,
@@ -486,8 +448,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           const SizedBox(height: 8),
           TextFormField(
             controller: controller,
-            obscureText:
-                !isVisible, // Menggunakan state isVisible untuk menyembunyikan
+            obscureText: !isVisible,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             validator: validator,
             decoration: InputDecoration(
@@ -517,7 +478,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide(color: Colors.red.shade700, width: 1.5),
               ),
-              // Tombol toggle visibilitas
               suffixIcon: IconButton(
                 icon: Icon(
                   isVisible ? Icons.visibility : Icons.visibility_off,

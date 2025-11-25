@@ -1,5 +1,3 @@
-// File: lib/models/journal_entry.dart
-
 class JournalEntry {
   final String id;
   final String title;

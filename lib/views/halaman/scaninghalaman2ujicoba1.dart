@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // 🆕 untuk tanggal
 import 'package:kesehatan_ku/database/db_helper.dart'; // 🆕 untuk CRUD booking
-import 'package:kesehatan_ku/models/booking.dart';
+import 'package:kesehatan_ku/models/bookingmodel.dart';
 // import 'package:kesehatan_ku/models/booking_model.dart'; // 🆕 model booking
 
 class HomeScreen extends StatefulWidget {

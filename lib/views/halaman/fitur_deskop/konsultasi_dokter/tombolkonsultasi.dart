@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/database/priceformat.dart';
-import 'package:kesehatan_ku/models/dokter.dart';
+import 'package:kesehatan_ku/models/doktermodel.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter/BookAppointmentDialog.dart';
 
 // 1. PALET WARNA UTAMA (Diambil dari main.dart)
