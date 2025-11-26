@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Package untuk formatting tanggal
-
-// Variabel global (tetap dipertahankan untuk kompatibilitas lingkungan Canvas)
+import 'package:intl/intl.dart'; // Untuk format tanggal
 
 // --- MODEL DATA (SIMULASI SKEMA DATABASE) ---
 
@@ -11,7 +9,7 @@ class MedicalCheck {
   final String status;
   final Color statusColor;
   final IconData icon;
-  final DateTime checkDate; // **BARU: Tanggal Pemeriksaan**
+  final DateTime checkDate;
 
   MedicalCheck({
     required this.title,
@@ -19,20 +17,16 @@ class MedicalCheck {
     required this.status,
     required this.statusColor,
     required this.icon,
-    required this.checkDate, // **BARU**
+    required this.checkDate,
   });
 }
 
-// --- DATABASE HELPER (SIMULASI PENGGUNAAN DB LOKAL) ---
+// --- DATABASE HELPER (SIMULASI DB LOKAL) ---
 
 class DatabaseHelper {
-  // Fungsi ini mensimulasikan pengambilan data dari database lokal
-  // seperti SQLite (menggunakan package sqflite) secara asinkron.
   Future<List<MedicalCheck>> getMedicalChecks() async {
-    // Simulasikan penundaan jaringan/disk (misalnya 1.5 detik)
     await Future.delayed(const Duration(milliseconds: 1500));
 
-    // Data yang diambil dari "database" (Menambahkan Tanggal Pemeriksaan)
     return [
       MedicalCheck(
         title: 'Gula Darah (Diabetes)',
@@ -40,7 +34,7 @@ class DatabaseHelper {
         status: 'Normal',
         statusColor: Colors.green,
         icon: Icons.bloodtype,
-        checkDate: DateTime(2025, 10, 28), // Tanggal baru
+        checkDate: DateTime(2025, 10, 28),
       ),
       MedicalCheck(
         title: 'Kolesterol Total',
@@ -48,7 +42,7 @@ class DatabaseHelper {
         status: 'Perlu Perhatian',
         statusColor: Colors.orange,
         icon: Icons.monitor_heart,
-        checkDate: DateTime(2025, 9, 15), // Tanggal baru
+        checkDate: DateTime(2025, 9, 15),
       ),
       MedicalCheck(
         title: 'Tekanan Darah',
@@ -56,9 +50,7 @@ class DatabaseHelper {
         status: 'Ideal',
         statusColor: Colors.green,
         icon: Icons.speed,
-        checkDate: DateTime.now().subtract(
-          const Duration(days: 2),
-        ), // Tanggal 2 hari lalu
+        checkDate: DateTime.now().subtract(const Duration(days: 2)),
       ),
       MedicalCheck(
         title: 'Asam Urat',
@@ -66,13 +58,13 @@ class DatabaseHelper {
         status: 'Normal',
         statusColor: Colors.green,
         icon: Icons.medication_liquid,
-        checkDate: DateTime(2025, 10, 20), // Tanggal baru
+        checkDate: DateTime(2025, 10, 20),
       ),
     ];
   }
 }
 
-// --- WIDGET UTAMA (MAIN) ---
+// --- APP DEMO (BOLEH DIABAIKAN JIKA PAKAI BOTTOM NAV DI MAIN DART) ---
 
 void main() {
   runApp(const healty());
@@ -81,23 +73,21 @@ void main() {
 class healty extends StatelessWidget {
   const healty({super.key});
 
-  // Warna Primer Baru: Teal/Cyan yang cerah (seperti yang terlihat di Figma)
+  // Warna Primer
   static const Color primaryColor = Color(0xFF00CBA9);
-  static const MaterialColor primarySwatchColor = MaterialColor(
-    0xFF00CBA9,
-    <int, Color>{
-      50: Color(0xFFE0FFFA),
-      100: Color(0xFFB3FFF5),
-      200: Color(0xFF80FFF0),
-      300: Color(0xFF4DFFE0),
-      400: Color(0xFF26FFD0),
-      500: primaryColor, // Base color
-      600: Color(0xFF00B09A),
-      700: Color(0xFF009684),
-      800: Color(0xFF007B6F),
-      900: Color(0xFF004D4B),
-    },
-  );
+  static const MaterialColor primarySwatchColor =
+      MaterialColor(0xFF00CBA9, <int, Color>{
+        50: Color(0xFFE0FFFA),
+        100: Color(0xFFB3FFF5),
+        200: Color(0xFF80FFF0),
+        300: Color(0xFF4DFFE0),
+        400: Color(0xFF26FFD0),
+        500: primaryColor,
+        600: Color(0xFF00B09A),
+        700: Color(0xFF009684),
+        800: Color(0xFF007B6F),
+        900: Color(0xFF004D4B),
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -105,13 +95,17 @@ class healty extends StatelessWidget {
       title: 'KesehatanKu',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Menggunakan primary color baru
         primarySwatch: primarySwatchColor,
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: primarySwatchColor,
           accentColor: primaryColor,
         ),
-        scaffoldBackgroundColor: const Color.fromARGB(255, 201, 231, 226),
+        scaffoldBackgroundColor: const Color.fromARGB(
+          255,
+          201,
+          231,
+          226,
+        ), // hijau muda
         fontFamily: 'Inter',
         useMaterial3: true,
       ),
@@ -120,7 +114,7 @@ class healty extends StatelessWidget {
   }
 }
 
-// --- SCREEN APLIKASI KESEHATAN (STATEFUL) ---
+// --- SCREEN APLIKASI KESEHATAN ---
 
 class HealthyScreen extends StatefulWidget {
   const HealthyScreen({super.key});
@@ -130,159 +124,84 @@ class HealthyScreen extends StatefulWidget {
 }
 
 class _HealthyScreenState extends State<HealthyScreen> {
-  // Warna Primer dari healty
   static const Color primaryColor = healty.primaryColor;
   static const Color secondaryTextColor = Colors.grey;
-  // Warna untuk gradasi latar belakang card
+
+  // Warna gradasi ringkasan
   static const Color secondaryColorLight = Color(0xFF32D5B5);
   static const Color secondaryColorDark = Color(0xFF00A383);
 
-  // State untuk data Medical Check Up
   late Future<List<MedicalCheck>> _medicalChecksFuture;
 
   @override
   void initState() {
     super.initState();
-    // Panggil Database Helper saat widget diinisialisasi
     _medicalChecksFuture = DatabaseHelper().getMedicalChecks();
   }
 
-  // Helper untuk mendapatkan warna teks gelap yang kontras untuk badge
-  // Ini mengatasi masalah "shade()" yang tidak tersedia pada tipe Color secara statis.
   Color _getBadgeTextColor(Color baseColor) {
-    // Mengecek apakah warna yang diberikan adalah MaterialColor (yang memiliki metode shade)
     if (baseColor is MaterialColor) {
-      // Jika ya, gunakan shade 700 yang gelap.
       return baseColor.shade700;
     }
-
-    // Jika itu adalah plain Color, kita mencampurnya dengan hitam
-    // untuk memastikan kontras yang cukup pada badge yang transparan.
-    // Faktor 0.4 membuat warna 40% lebih gelap menuju hitam.
     return Color.lerp(baseColor, Colors.black, 0.4) ?? Colors.black;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 1. Header/App Bar
-      appBar: _buildAppBar(),
-
-      // 2. Konten Utama
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Status Sehat Hari Ini',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1F2937), // gray-800
+      // TIDAK ADA APPBAR DI SINI
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // LANGSUNG KE KONTEN UTAMA
+              const Text(
+                'Status Sehat Hari Ini',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1F2937),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Card Utama: Ringkasan Kesehatan (Detak Jantung)
-            _buildSummaryCard(),
+              _buildSummaryCard(),
+              const SizedBox(height: 24),
 
-            const SizedBox(height: 24),
-
-            const Text(
-              'Progres Aktivitas',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF374151), // gray-700
+              const Text(
+                'Progres Aktivitas',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF374151),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-            // Grid Progres Harian
-            _buildProgressGrid(),
+              _buildProgressGrid(),
+              const SizedBox(height: 24),
 
-            const SizedBox(height: 24),
+              _buildMedicalCheckUpSection(),
+              const SizedBox(height: 24),
 
-            // Bagian Pemeriksaan Medis (Menggunakan FutureBuilder)
-            _buildMedicalCheckUpSection(),
-
-            const SizedBox(height: 24),
-
-            // Tips Kesehatan
-            _buildHealthTip(),
-            const SizedBox(height: 20), // Tambahkan padding bawah
-          ],
+              _buildHealthTip(),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // --- Implementasi Widget Pembantu ---
+  // --- CARD RINGKASAN DETAK JANTUNG ---
 
-  // Header/Top Bar (sebagai AppBar)
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 1, // Sedikit bayangan
-      automaticallyImplyLeading: false, // Menghilangkan tombol kembali default
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                'Selamat Pagi,',
-                style: TextStyle(fontSize: 14, color: secondaryTextColor),
-              ),
-              Text(
-                'ini Budi!',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
-                ),
-              ),
-            ],
-          ),
-          // Ikon Profil Placeholder
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: primaryColor, // Menggunakan warna primer baru
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(2, 2),
-                ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: const Text(
-              'BU',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Card Utama: Ringkasan Kesehatan (Detak Jantung)
   Widget _buildSummaryCard() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        // Menggunakan Gradien untuk tampilan yang lebih dinamis
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [secondaryColorLight, secondaryColorDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -331,17 +250,10 @@ class _HealthyScreenState extends State<HealthyScreen> {
                   ),
                 ],
               ),
-              // Ikon Jantung
-              Icon(
-                Icons.favorite,
-                size: 32,
-                color: Colors
-                    .red[100], // Warna jantung sedikit lebih terang agar kontras
-              ),
+              Icon(Icons.favorite, size: 32, color: Colors.redAccent.shade100),
             ],
           ),
           const SizedBox(height: 16),
-          // Mengubah warna Divider agar kontras dengan latar belakang hijau
           const Divider(color: Color(0xFF66E6CC), height: 1),
           const SizedBox(height: 8),
           const Text(
@@ -353,12 +265,12 @@ class _HealthyScreenState extends State<HealthyScreen> {
     );
   }
 
-  // Grid Progres Harian (Langkah, Air, Tidur, Kalori)
+  // --- GRID PROGRES HARIAN ---
+
   Widget _buildProgressGrid() {
     return GridView.count(
       shrinkWrap: true,
-      physics:
-          const NeverScrollableScrollPhysics(), // Menonaktifkan scroll di dalam grid
+      physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
@@ -368,7 +280,7 @@ class _HealthyScreenState extends State<HealthyScreen> {
           value: '4.500',
           subtitle: 'dari 10.000 target',
           progressPercent: 0.45,
-          progressColor: primaryColor, // Menggunakan warna primer baru
+          progressColor: primaryColor,
         ),
         _buildProgressCard(
           title: 'Asupan Air',
@@ -382,7 +294,7 @@ class _HealthyScreenState extends State<HealthyScreen> {
           value: '7h 30m',
           subtitle: 'Kualitas Baik',
           progressPercent: 0.90,
-          progressColor: Colors.yellow,
+          progressColor: Colors.yellow.shade700,
         ),
         _buildProgressCard(
           title: 'Kalori Terbakar',
@@ -395,13 +307,12 @@ class _HealthyScreenState extends State<HealthyScreen> {
     );
   }
 
-  // Template untuk Card Progres
   Widget _buildProgressCard({
     required String title,
     required String value,
     required String subtitle,
     required double progressPercent,
-    required Color progressColor, // Mengubah tipe menjadi Color
+    required Color progressColor,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -441,14 +352,12 @@ class _HealthyScreenState extends State<HealthyScreen> {
           const Spacer(),
           Text(
             subtitle,
-            // Mengubah penggunaan shade karena progressColor sekarang bertipe Color
             style: TextStyle(
               fontSize: 11,
               color: progressColor.withOpacity(0.9),
             ),
           ),
           const SizedBox(height: 6),
-          // Progress Bar
           ClipRRect(
             borderRadius: BorderRadius.circular(5),
             child: LinearProgressIndicator(
@@ -463,7 +372,8 @@ class _HealthyScreenState extends State<HealthyScreen> {
     );
   }
 
-  // Bagian Baru: Pemeriksaan Medis (Menggunakan FutureBuilder)
+  // --- BAGIAN PEMERIKSAAN MEDIS ---
+
   Widget _buildMedicalCheckUpSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,27 +383,22 @@ class _HealthyScreenState extends State<HealthyScreen> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF374151), // gray-700
+            color: Color(0xFF374151),
           ),
         ),
         const SizedBox(height: 12),
-
-        // FutureBuilder untuk memuat data dari DatabaseHelper
         FutureBuilder<List<MedicalCheck>>(
           future: _medicalChecksFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              // Tampilkan loading indicator saat data dimuat
               return Center(
                 child: CircularProgressIndicator(color: primaryColor),
-              ); // Menggunakan warna primer baru
+              );
             } else if (snapshot.hasError) {
-              // Tampilkan pesan error jika terjadi kesalahan
               return Center(
                 child: Text('Gagal memuat data: ${snapshot.error}'),
               );
             } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-              // Tampilkan daftar data jika berhasil dimuat
               return ListView.separated(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
@@ -507,12 +412,11 @@ class _HealthyScreenState extends State<HealthyScreen> {
                     status: check.status,
                     statusColor: check.statusColor,
                     icon: check.icon,
-                    checkDate: check.checkDate, // **BARU: Meneruskan tanggal**
+                    checkDate: check.checkDate,
                   );
                 },
               );
             } else {
-              // Tampilkan pesan jika data kosong
               return const Center(
                 child: Text('Tidak ada data pemeriksaan medis.'),
               );
@@ -523,16 +427,14 @@ class _HealthyScreenState extends State<HealthyScreen> {
     );
   }
 
-  // Template untuk Item Cek Medis
   Widget _buildCheckUpItem({
     required String title,
     required String latestResult,
     required String status,
     required Color statusColor,
     required IconData icon,
-    required DateTime checkDate, // **BARU: Menerima tanggal**
+    required DateTime checkDate,
   }) {
-    // Format tanggal ke dalam format DD/MM/YYYY
     final formattedDate = DateFormat('dd MMMM yyyy').format(checkDate);
 
     return Container(
@@ -552,7 +454,6 @@ class _HealthyScreenState extends State<HealthyScreen> {
       ),
       child: Row(
         children: [
-          // Ikon menggunakan warna primer baru
           Icon(icon, color: primaryColor, size: 28),
           const SizedBox(width: 12),
           Expanded(
@@ -567,8 +468,7 @@ class _HealthyScreenState extends State<HealthyScreen> {
                     color: Color(0xFF1F2937),
                   ),
                 ),
-                const SizedBox(height: 2), // Spasi kecil
-                // BARU: Tampilkan Tanggal Pemeriksaan
+                const SizedBox(height: 2),
                 Text(
                   'Tanggal: $formattedDate',
                   style: const TextStyle(
@@ -577,8 +477,7 @@ class _HealthyScreenState extends State<HealthyScreen> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4), // Spasi antara tanggal dan hasil
-
+                const SizedBox(height: 4),
                 Text(
                   'Hasil Terakhir: $latestResult',
                   style: const TextStyle(fontSize: 13, color: Colors.grey),
@@ -586,7 +485,6 @@ class _HealthyScreenState extends State<HealthyScreen> {
               ],
             ),
           ),
-          // Badge Status
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -596,9 +494,6 @@ class _HealthyScreenState extends State<HealthyScreen> {
             child: Text(
               status,
               style: TextStyle(
-                // PERBAIKAN: Menggunakan helper untuk mendapatkan warna teks badge
-                // yang gelap. Ini mengatasi masalah 'shade700' yang tidak tersedia
-                // pada tipe 'Color' secara statis.
                 color: _getBadgeTextColor(statusColor),
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
@@ -610,22 +505,15 @@ class _HealthyScreenState extends State<HealthyScreen> {
     );
   }
 
-  // Tips Kesehatan
+  // --- TIPS KESEHATAN ---
+
   Widget _buildHealthTip() {
-    // Menyesuaikan warna tips kesehatan agar lebih selaras
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(
-          0xFFE0FFFA,
-        ), // Warna latar belakang yang lebih terang dari palet baru
+        color: const Color(0xFFE0FFFA),
         borderRadius: BorderRadius.circular(16),
-        border: Border(
-          left: BorderSide(
-            color: primaryColor, // Border menggunakan warna primer baru
-            width: 4,
-          ),
-        ),
+        border: Border(left: BorderSide(color: primaryColor, width: 4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -634,14 +522,13 @@ class _HealthyScreenState extends State<HealthyScreen> {
             'Tips Sehat Hari Ini',
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color:
-                  secondaryColorDark, // Menggunakan warna gelap dari palet baru
+              color: secondaryColorDark,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Pastikan Anda melakukan peregangan selama 5 menit setiap jam!',
-            style: TextStyle(fontSize: 14, color: secondaryColorDark),
+            style: const TextStyle(fontSize: 14, color: secondaryTextColor),
           ),
         ],
       ),

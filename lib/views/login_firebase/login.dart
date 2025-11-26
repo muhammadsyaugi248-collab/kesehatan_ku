@@ -7,8 +7,6 @@ import 'package:kesehatan_ku/preferences/preference_handler.dart';
 import 'package:kesehatan_ku/services/firebase.dart';
 import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
 import 'package:kesehatan_ku/views/register_firebase/register.dart';
-import 'package:kesehatan_ku/views/register_sqflite/register.dart';
-
 // ✅ TAMBAHKAN INI (sesuaikan path-nya dengan project kamu)
 
 class LoginScreen extends StatefulWidget {

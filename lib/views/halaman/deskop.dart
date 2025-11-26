@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:kesehatan_ku/models/doktermodel.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter/tombolkonsultasi.dart';
@@ -11,22 +14,20 @@ const Color backgroundColor = Color.fromARGB(
   201,
   231,
   226,
-); // Latar Belakang Putih Bersih
+); // Latar Belakang
 const Color textColorDark = Color(0xFF1F2937); // Hitam Gelap untuk Keterbacaan
 const Color iconAqua = Color(0xFF1FB2A5); // Ikon Kesehatan Fisik
 const Color iconGreen = Color(0xFF8BC34A); // Ikon Nutrisi
 
-// --- Warna Tambahan untuk Modul Baru (Disesuaikan dengan Gambar) ---
+// --- Warna Tambahan untuk Modul Baru ---
 const Color consultColor = Color(0xFF1EC0C7); // Biru Tosca untuk Konsultasi
 const Color locationColor = Color(0xFF5A66F9); // Biru Ungu untuk Fasilitas
 const Color historyColor = Color(0xFF6C757D); // Abu-abu gelap untuk Riwayat
-const Color medicationColor = Color(0xFFF7346B); // Merah muda/Pink untuk Obat
+const Color medicationColor = Color(0xFFF7346B); // Pink untuk Obat
 const Color newsColor = Color(0xFFFF9900); // Orange untuk Berita
 const Color accessibilityColor = Color(0xFF9060F7); // Ungu untuk Aksesibilitas
-// -------------------------------------------------------------------
 
 // 2. UKURAN DAN DIMENSI (Spacing & Radius)
-
 const double pagePadding = 16.0;
 const double blockSpacing = 20.0;
 const double cardSpacing = 10.0;
@@ -45,12 +46,12 @@ class deskop extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(scaffoldBackgroundColor: backgroundColor),
-      home: HealthHomePage(),
+      home: const HealthHomePage(),
     );
   }
 }
 
-// ⭐ WIDGET BARU: Placeholder untuk halaman yang belum dibuat
+// ⭐ Placeholder untuk halaman yang belum dibuat
 class PlaceholderWidget extends StatelessWidget {
   final String title;
   const PlaceholderWidget(this.title, {super.key});
@@ -71,44 +72,96 @@ class PlaceholderWidget extends StatelessWidget {
 }
 
 // 3. STRUKTUR HALAMAN UTAMA (Scaffold)
-class HealthHomePage extends StatelessWidget {
-  HealthHomePage({super.key});
+class HealthHomePage extends StatefulWidget {
+  const HealthHomePage({super.key});
 
-  // ⭐ PERBAIKAN KRITIS 1: HAPUS 'const' di sini!
-  // Menambahkan field 'route' untuk menunjuk ke halaman yang spesifik
-  final List<Map<String, dynamic>> menuItems = [
-    // Modul Lama (4)
+  @override
+  State<HealthHomePage> createState() => _HealthHomePageState();
+}
+
+class _HealthHomePageState extends State<HealthHomePage> {
+  // ------- STATE USER / SAPAAN -------
+  String _userName = 'Pengguna';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  // Ambil nama dari FirebaseAuth (kalau ada)
+  Future<void> _loadUserName() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (!mounted) return;
+
+    setState(() {
+      if (user != null) {
+        if (user.displayName != null && user.displayName!.trim().isNotEmpty) {
+          _userName = user.displayName!.trim();
+        } else if (user.email != null && user.email!.isNotEmpty) {
+          _userName = user.email!.split('@').first;
+        }
+      }
+    });
+  }
+
+  // Sapaan dinamis (pagi / siang / sore / malam)
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 11) return 'Selamat pagi';
+    if (hour >= 11 && hour < 15) return 'Selamat siang';
+    if (hour >= 15 && hour < 18) return 'Selamat sore';
+    return 'Selamat malam';
+  }
+
+  // Tanggal hari ini
+  String _getTodayString() {
+    // Kalau mau full Indonesia pastikan intl locale sudah di-setup
+    return DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now());
+  }
+
+  // Inisial untuk avatar (dua huruf pertama nama)
+  String _getInitials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length == 1) {
+      return parts.first
+          .substring(0, parts.first.length >= 2 ? 2 : 1)
+          .toUpperCase();
+    }
+    return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+  }
+
+  // ------- DATA MENU -------
+  late final List<Map<String, dynamic>> menuItems = [
     {
       'title': 'Kesehatan Fisik',
       'icon': Icons.favorite_border,
-      'color': iconAqua, // #1FB2A5
-      'route': const PlaceholderWidget('Kesehatan Fisik'), // Route 1
+      'color': iconAqua,
+      'route': const PlaceholderWidget('Kesehatan Fisik'),
     },
     {
       'title': 'Nutrisi & Pola Makan',
       'icon': Icons.apple,
-      'color': iconGreen, // #8BC34A
-      'route': const PlaceholderWidget('Nutrisi & Pola Makan'), // Route 2
+      'color': iconGreen,
+      'route': const PlaceholderWidget('Nutrisi & Pola Makan'),
     },
     {
       'title': 'Kebugaran',
       'icon': Icons.fitness_center,
       'color': Colors.deepOrange,
-      'route': const PlaceholderWidget('Kebugaran'), // Route 3
+      'route': const PlaceholderWidget('Kebugaran'),
     },
     {
       'title': 'Kesehatan Mental',
       'icon': Icons.psychology_outlined,
       'color': Colors.purple,
-      'route': const MentalHealthScreen(), // Route 4
+      'route': const MentalHealthScreen(),
     },
-    // --- Modul Tambahan BARU (6) ---
     {
       'title': 'Konsultasi & Dokter',
       'icon': Icons.medical_services,
       'color': consultColor,
-      // Ini akan menuju ke halaman Konsultasi Dokter Anda yang di-import
-      // ⭐ SOLUSI: Memanggil DoctorListScreen dengan data dummyDoctors
       'route': DoctorListScreen(doctors: dummyDoctors),
     },
     {
@@ -125,7 +178,7 @@ class HealthHomePage extends StatelessWidget {
     },
     {
       'title': 'Obat & Catatan',
-      'icon': Icons.medical_services_outlined, // Menggunakan ikon kapsul
+      'icon': Icons.medical_services_outlined,
       'color': medicationColor,
       'route': const PlaceholderWidget('Obat & Catatan'),
     },
@@ -141,12 +194,11 @@ class HealthHomePage extends StatelessWidget {
       'color': accessibilityColor,
       'route': const PlaceholderWidget('Aksesibilitas'),
     },
-    // ----------------------
   ];
 
   @override
   Widget build(BuildContext context) {
-    // Menghitung lebar kartu menu agar benar-benar pas 2 kolom
+    // Hitung lebar kartu menu agar pas 2 kolom
     final double availableWidth =
         MediaQuery.of(context).size.width - (2 * pagePadding);
     final double cardWidth = (availableWidth - cardSpacing) / 2;
@@ -156,58 +208,13 @@ class HealthHomePage extends StatelessWidget {
       backgroundColor: backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          // Padding Halaman (Luar) = 16.0
           padding: const EdgeInsets.all(pagePadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Bagian 1: Header Selamat Datang
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 25,
-                  horizontal: 20,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(cardRadius),
-                  gradient: const LinearGradient(
-                    colors: [iconAqua, primaryAccent],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: primaryAccent.withOpacity(0.4),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hello, saya sendiri! 👋',
-                      style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Senin, 3 November 2025',
-                      style: TextStyle(
-                        fontSize: 12.0,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Bagian 1: HEADER SAPAAN DINAMIS
+              _buildGreetingHeader(),
 
-              // Spacing Antar Blok = 20.0
               const SizedBox(height: blockSpacing),
 
               // Bagian 2: Kartu Utama (Point Saya & Kartu Kesehatan)
@@ -216,7 +223,6 @@ class HealthHomePage extends StatelessWidget {
                   SizedBox(
                     width: cardWidth,
                     height: cardheight,
-                    // Mempertahankan perubahan 'Point Saya'
                     child: SimpleCard(
                       title: 'Point Saya',
                       icon: Icons.star_border,
@@ -226,7 +232,6 @@ class HealthHomePage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Spacing Kartu Menu = 10.0
                   const SizedBox(width: cardSpacing),
                   SizedBox(
                     width: cardWidth,
@@ -245,14 +250,12 @@ class HealthHomePage extends StatelessWidget {
                 ],
               ),
 
-              // Spacing Antar Blok = 20.0
               const SizedBox(height: blockSpacing),
 
               // Bagian 3: Judul Blok Modul Kesehatan
               const Text(
                 'Modul Kesehatan',
                 style: TextStyle(
-                  // Judul Blok = 18.0, FontWeight.bold (w700)
                   fontSize: 18.0,
                   fontWeight: FontWeight.bold,
                   color: textColorDark,
@@ -260,9 +263,8 @@ class HealthHomePage extends StatelessWidget {
               ),
               const SizedBox(height: cardSpacing),
 
-              // Bagian 4: Grid Modul Kesehatan (Menggunakan Wrap untuk responsif 2 kolom)
+              // Bagian 4: Grid Modul Kesehatan
               Wrap(
-                // Spacing Kartu Menu = 10.0
                 spacing: cardSpacing,
                 runSpacing: cardSpacing,
                 children: menuItems.map((item) {
@@ -272,7 +274,6 @@ class HealthHomePage extends StatelessWidget {
                       title: item['title'] as String,
                       icon: item['icon'] as IconData,
                       color: item['color'] as Color,
-                      // ⭐ PERBAIKAN KRITIS 2: Ambil nilai 'route' yang unik
                       route: item['route'] as Widget?,
                     ),
                   );
@@ -284,6 +285,88 @@ class HealthHomePage extends StatelessWidget {
       ),
     );
   }
+
+  // ===== HEADER WIDGET (SAPaan + TANGGAL + AVATAR) =====
+  Widget _buildGreetingHeader() {
+    final greeting = _getGreeting(); // Selamat pagi/siang/sore/malam
+    final dateText = _getTodayString();
+    final initials = _getInitials(_userName);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [iconAqua, primaryAccent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(cardRadius),
+        boxShadow: [
+          BoxShadow(
+            color: primaryAccent.withOpacity(0.4),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Teks sapaan + tanggal
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$greeting,',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _userName,
+                  style: const TextStyle(
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  dateText,
+                  style: const TextStyle(
+                    fontSize: 12.0,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Circle Avatar inisial user
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: Colors.white,
+            child: Text(
+              initials,
+              style: const TextStyle(
+                color: primaryAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // Widget untuk Kartu Kecil di Atas (Point Saya, Kartu Kesehatan)
@@ -291,14 +374,13 @@ class SimpleCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color color;
-  // Tambahkan callback untuk aksi klik
   final VoidCallback onTap;
 
   const SimpleCard({
     required this.title,
     required this.icon,
     required this.color,
-    required this.onTap, // Inisialisasi callback
+    required this.onTap,
     super.key,
   });
 
@@ -306,16 +388,12 @@ class SimpleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      // Radius Kartu/Container = 15.0
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(cardRadius),
       ),
-      // Gunakan InkWell untuk membuatnya bisa diklik dan memberi efek visual
       child: InkWell(
-        onTap: onTap, // Menghubungkan fungsi klik
-        borderRadius: BorderRadius.circular(
-          cardRadius,
-        ), // Radius InkWell harus sama dengan Card
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(cardRadius),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -326,7 +404,6 @@ class SimpleCard extends StatelessWidget {
                 child: Text(
                   title,
                   style: const TextStyle(
-                    // Judul Kartu = 15.0, FontWeight.w600
                     fontSize: 15.0,
                     fontWeight: FontWeight.w600,
                     color: textColorDark,
@@ -360,35 +437,30 @@ class MenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      // Radius Kartu/Container = 15.0
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(cardRadius),
       ),
-      // InkWell sudah ada, ini sudah benar
       child: InkWell(
         onTap: () {
-          // ⭐ PERBAIKAN KRITIS 3: Cek route sebelum navigasi
           if (route != null) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => route!),
             );
           }
-          // Aksi klik (Snackbar)
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('$title diklik!')));
         },
         borderRadius: BorderRadius.circular(cardRadius),
         child: SizedBox(
-          height: menuCardHeight, // Tinggi Kartu Menu = 120.0
+          height: menuCardHeight,
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                // Ikon Menu di dalam latar belakang transparan
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -397,11 +469,9 @@ class MenuCard extends StatelessWidget {
                   ),
                   child: Icon(icon, size: 30, color: color),
                 ),
-                // Judul Menu
                 Text(
                   title,
                   style: const TextStyle(
-                    // Judul Kartu = 15.0, FontWeight.w600
                     fontSize: 15.0,
                     fontWeight: FontWeight.w600,
                     color: textColorDark,

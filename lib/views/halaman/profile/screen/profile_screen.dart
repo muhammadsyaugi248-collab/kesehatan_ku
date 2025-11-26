@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:kesehatan_ku/models/health_datamodel.dart';
 import 'package:kesehatan_ku/views/halaman/profile/utils/app_colors.dart';
 import 'package:kesehatan_ku/views/halaman/profile/widgets/custom_card.dart';
 import 'package:kesehatan_ku/views/halaman/profile/widgets/goals_widgets.dart';
 import 'package:kesehatan_ku/views/halaman/profile/widgets/health_cards.dart';
-// Mengimpor cards utama
+import 'package:intl/intl.dart';
 
-// === Data Header Mock ===
-const String mockUserName = 'Ahmad Ridwan';
-const String mockUserEmail = 'ahmad.ridwan@example.com';
-const String mockMemberSince = 'January 2024';
-
-// Widget kartu kecil di bawah header (Checkups, Heart Rate, dll.)
+/// ---------------------------------------------------------------------------
+/// METRIC PILL (kartu kecil di bawah header)
+/// ---------------------------------------------------------------------------
 class MetricPill extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -32,7 +32,6 @@ class MetricPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Logika untuk menentukan apakah detail adalah perubahan numerik (+/-)
     final bool isChange = detail.startsWith('+') || detail.startsWith('-');
 
     return Expanded(
@@ -59,7 +58,6 @@ class MetricPill extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Hanya tampilkan ikon jika itu adalah perubahan numerik
               if (isChange)
                 Icon(
                   detail.contains('-')
@@ -69,13 +67,10 @@ class MetricPill extends StatelessWidget {
                   color: detailColor,
                 ),
               if (isChange) const SizedBox(width: 4),
-
-              // Menggunakan Flexible untuk mencegah overflow pada teks detail
               Flexible(
                 child: Text(
                   detail,
                   style: TextStyle(fontSize: 11, color: detailColor),
-                  // Pastikan teks dapat dipotong dengan elipsis jika masih terlalu panjang
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
@@ -88,11 +83,12 @@ class MetricPill extends StatelessWidget {
   }
 }
 
-// === Tab Kesehatan (Health Tab) ===
+/// ---------------------------------------------------------------------------
+/// TAB 1 : KESEHATAN
+/// ---------------------------------------------------------------------------
 class HealthTab extends StatelessWidget {
   const HealthTab({super.key});
 
-  // Mock Data
   final List<MedicalCondition> mockConditions = const [
     MedicalCondition(id: 'c1', name: 'Hipertensi Ringan', severity: 'Ringan'),
     MedicalCondition(
@@ -101,11 +97,13 @@ class HealthTab extends StatelessWidget {
       severity: 'Sedang',
     ),
   ];
+
   final List<Allergy> mockAllergies = const [
     Allergy(name: 'Kacang-kacangan', type: 'Makanan'),
     Allergy(name: 'Penisilin', type: 'Obat'),
     Allergy(name: 'Tungau Debu', type: 'Lingkungan'),
   ];
+
   final List<Recommendation> mockRecommendations = const [
     Recommendation(text: 'Pantau tekanan darah secara teratur'),
     Recommendation(text: 'Diet rendah natrium'),
@@ -114,12 +112,9 @@ class HealthTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Memanggil widget Health Cards dengan data mock
     return ListView(
-      // Penting: Hapus padding bawaan ListView karena sudah ada di CustomScrollView
       padding: const EdgeInsets.all(16.0),
       children: [
-        // --- Kartu Metric Tambahan (Hanya di tab Info/Kesehatan) ---
         CustomCard(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Row(
@@ -160,7 +155,6 @@ class HealthTab extends StatelessWidget {
             ],
           ),
         ),
-        // --- Kartu Informasi Kesehatan Bawah ---
         MedicalConditionsCard(conditions: mockConditions),
         AllergiesCard(allergies: mockAllergies),
         DoctorsRecommendationsCard(recommendations: mockRecommendations),
@@ -169,11 +163,12 @@ class HealthTab extends StatelessWidget {
   }
 }
 
-// === Tab Target (Goals Tab) ===
+/// ---------------------------------------------------------------------------
+/// TAB 2 : TARGET
+/// ---------------------------------------------------------------------------
 class GoalsTab extends StatelessWidget {
   const GoalsTab({super.key});
 
-  // Mock Data untuk GoalsTab
   final List<Goal> mockGoals = const [
     Goal(
       title: 'Target Penurunan Berat Badan',
@@ -223,7 +218,6 @@ class GoalsTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        // Kartu Progress Tujuan
         CustomCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,19 +231,15 @@ class GoalsTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 15),
-              ...mockGoals
-                  .map(
-                    (goal) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: GoalProgressCard(goal: goal),
-                    ),
-                  )
-                  .toList(),
+              ...mockGoals.map(
+                (goal) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: GoalProgressCard(goal: goal),
+                ),
+              ),
             ],
           ),
         ),
-
-        // Kartu Perbandingan Vital
         CustomCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,11 +264,12 @@ class GoalsTab extends StatelessWidget {
   }
 }
 
-// === Tab Penghargaan (Awards Tab) ===
+/// ---------------------------------------------------------------------------
+/// TAB 3 : PENGHARGAAN
+/// ---------------------------------------------------------------------------
 class AwardsTab extends StatelessWidget {
   const AwardsTab({super.key});
 
-  // Mock Data untuk AwardsTab
   final List<Award> mockAwards = const [
     Award(
       icon: Icons.run_circle_outlined,
@@ -328,7 +319,6 @@ class AwardsTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          // Menggunakan Expanded agar GridView mengisi ruang yang tersisa
           Expanded(
             child: GridView.builder(
               itemCount: mockAwards.length,
@@ -349,7 +339,9 @@ class AwardsTab extends StatelessWidget {
   }
 }
 
-// === Layar Utama Dashboard (Diperbarui dengan NestedScrollView) ===
+/// ---------------------------------------------------------------------------
+/// PROFILE SCREEN (pakai data dari Firebase)
+/// ---------------------------------------------------------------------------
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -361,10 +353,19 @@ class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String _userName = 'Teman Sehat';
+  String _userEmail = '-';
+  String _memberSince = '';
+  bool _isLoadingHeader = true;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _loadUserProfile();
   }
 
   @override
@@ -373,137 +374,239 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.dispose();
   }
 
-  // Widget Header Kustom (Area di atas tab bar)
+  Future<void> _loadUserProfile() async {
+    try {
+      final user = _auth.currentUser;
+
+      if (user == null) {
+        // belum login → tetap pakai default
+        setState(() {
+          _userName = 'Teman Sehat';
+          _userEmail = '-';
+          _memberSince = '';
+          _isLoadingHeader = false;
+        });
+        return;
+      }
+
+      String name = user.displayName ?? '';
+      String email = user.email ?? '-';
+      String memberSinceText = '';
+
+      // ambil dari Firestore (users/{uid}) kalau ada
+      try {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+
+        if (doc.exists) {
+          final data = doc.data() ?? {};
+          if (data['username'] != null &&
+              (data['username'] as String).isNotEmpty) {
+            name = data['username'] as String;
+          }
+
+          if (data['createdAt'] != null) {
+            final ts = data['createdAt'];
+            DateTime created;
+            if (ts is Timestamp) {
+              created = ts.toDate();
+            } else if (ts is DateTime) {
+              created = ts;
+            } else {
+              created = user.metadata.creationTime ?? DateTime.now();
+            }
+            memberSinceText = DateFormat(
+              'MMMM yyyy',
+            ).format(created); // January 2024
+          }
+        }
+      } catch (_) {
+        // kalau gagal baca Firestore, fallback ke metadata auth
+      }
+
+      // fallback memberSince dari metadata kalau masih kosong
+      if (memberSinceText.isEmpty && user.metadata.creationTime != null) {
+        memberSinceText = DateFormat(
+          'MMMM yyyy',
+        ).format(user.metadata.creationTime!);
+      }
+
+      if (name.isEmpty) name = 'Teman Sehat';
+
+      setState(() {
+        _userName = name;
+        _userEmail = email;
+        _memberSince = memberSinceText.isNotEmpty
+            ? 'Member since $memberSinceText'
+            : '';
+        _isLoadingHeader = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingHeader = false;
+      });
+    }
+  }
+
+  // Header biru dengan gradient
   Widget _buildProfileHeader(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient:
-            headerGradient, // Menggunakan gradient kustom dari app_colors.dart
-      ),
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Area Info Profil
-          Padding(
-            padding: const EdgeInsets.only(top: 20.0, left: 16.0, right: 16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Foto Profil
-                const CircleAvatar(
-                  radius: 35,
-                  // Gambar placeholder hanya untuk representasi
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 40, color: Color(0xFF00838F)),
-                ),
-                const SizedBox(width: 16),
-                // Nama & Email
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 5),
-                      Text(
-                        mockUserName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        mockUserEmail,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withOpacity(0.8),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_month_outlined,
-                            size: 14,
-                            color: Colors.white.withOpacity(0.8),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Member since $mockMemberSince',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+      decoration: const BoxDecoration(gradient: headerGradient),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // row avatar + info
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 35,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      Icons.person,
+                      size: 40,
+                      color: Color(0xFF00838F),
+                    ),
                   ),
-                ),
-                // Tombol Edit Profile
-                OutlinedButton.icon(
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _isLoadingHeader
+                        ? const SizedBox(
+                            height: 40,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _userName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.email_outlined,
+                                    size: 14,
+                                    color: Colors.white70,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      _userEmail,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.white70,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              if (_memberSince.isNotEmpty)
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.calendar_month_outlined,
+                                      size: 14,
+                                      color: Colors.white70,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _memberSince,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // tombol edit profile baris sendiri (anti overflow)
+              Align(
+                alignment: Alignment.centerRight,
+                child: OutlinedButton.icon(
                   onPressed: () {
-                    // Implementasi logika edit
+                    // TODO: buka halaman edit profil
                   },
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('Edit Profile'),
+                  icon: const Icon(Icons.edit, size: 16),
+                  label: const Text(
+                    'Edit Profile',
+                    style: TextStyle(fontSize: 13),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white, width: 1.5),
-                    backgroundColor: Colors.transparent,
+                    side: const BorderSide(color: Colors.white, width: 1.4),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(22),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-        ],
+        ),
       ),
     );
   }
 
+  // BUILD
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 201, 231, 226),
       body: DefaultTabController(
-        length: 3, // Sama dengan jumlah Tab
+        length: 3,
         child: NestedScrollView(
-          // Header yang bisa diciutkan
-          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
             return <Widget>[
               SliverAppBar(
-                // Title (Dihapus karena akan menyebabkan tumpang tindih dengan FlexibleSpaceBar)
-                title: null, // Mengganti logika title yang kompleks dengan null
-
-                centerTitle: false, // Menjaga judul tetap di kiri
-                // Mengatur automaticallyImplyLeading ke false memastikan tidak ada tombol kembali default
-                automaticallyImplyLeading: false,
-                // Ganti warna saat ciut agar sesuai dengan gradient header (teal yang lebih terang)
-                backgroundColor: const Color(
-                  0xFF00ACC1,
-                ), // customPrimaryColor[600]
-                expandedHeight: 220.0, // Ketinggian saat Header penuh
-                floating: true,
+                expandedHeight: 230,
                 pinned: true,
+                floating: true,
+                automaticallyImplyLeading: false,
+                elevation: 0,
+                backgroundColor: const Color(0xFF00ACC1),
+                centerTitle: false,
+                title: innerBoxIsScrolled
+                    ? Text(
+                        _userName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      )
+                    : null,
                 flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: false,
-                  titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-                  // Menggunakan FlexibleSpaceBar.title untuk menampilkan nama saat diciutkan
-                  title: innerBoxIsScrolled
-                      ? Text(
-                          mockUserName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                        )
-                      : null, // Title di FlexibleSpaceBar disembunyikan saat diperluas (tidak perlu, karena sudah di background)
-                  // Content saat Header penuh (foto, nama, dll.)
+                  collapseMode: CollapseMode.parallax,
                   background: _buildProfileHeader(context),
                 ),
                 bottom: TabBar(
@@ -520,14 +623,12 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ];
           },
-          // Isi Tab View
           body: TabBarView(
             controller: _tabController,
             children: const [HealthTab(), GoalsTab(), AwardsTab()],
           ),
         ),
       ),
-      backgroundColor: Color.fromARGB(255, 201, 231, 226),
     );
   }
 }
