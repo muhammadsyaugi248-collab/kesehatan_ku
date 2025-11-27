@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/models/health_datamodel.dart';
-// Menggunakan path relatif untuk impor lokal
-import 'custom_card.dart';
+// ❌ import 'custom_card.dart';  // <- HAPUS, memang tidak dipakai
 
 // Widget pendukung untuk alergi
 class AllergyChip extends StatelessWidget {
@@ -14,10 +13,8 @@ class AllergyChip extends StatelessWidget {
     return Chip(
       label: Text(
         allergy.name,
-        // Dibuat lebih gelap agar kontras
         style: TextStyle(fontSize: 14, color: Colors.red.shade800),
       ),
-      // Background dibuat lebih terang
       backgroundColor: Colors.red.shade100,
       side: BorderSide(color: Colors.red.shade400, width: 1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -38,17 +35,14 @@ class RecommendationItem extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        // Background dibuat lebih terang
         color: Colors.blue.shade100,
         borderRadius: BorderRadius.circular(10),
-        // Border dibuat lebih jelas
         border: Border.all(color: Colors.blue.shade400, width: 1),
       ),
       child: Row(
         children: [
           Icon(
             Icons.check_circle_outline,
-            // Icon dibuat lebih gelap
             color: Colors.blue.shade800,
             size: 18,
           ),
@@ -58,7 +52,6 @@ class RecommendationItem extends StatelessWidget {
               recommendation.text,
               style: TextStyle(
                 fontSize: 14,
-                // Teks dibuat lebih gelap
                 color: Colors.blue.shade900,
                 fontWeight: FontWeight.w500,
               ),
@@ -69,6 +62,3 @@ class RecommendationItem extends StatelessWidget {
     );
   }
 }
-
-// Catatan: Tiga widget utama (MedicalConditionsCard, AllergiesCard, DoctorsRecommendationsCard)
-// berada di lib/widgets/health_cards.dart.

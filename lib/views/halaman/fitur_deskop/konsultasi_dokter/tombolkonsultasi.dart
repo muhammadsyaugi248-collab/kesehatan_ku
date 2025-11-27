@@ -1,228 +1,455 @@
+// lib/views/halaman/fitur_deskop/konsultasi_dokter/tombolkonsultasi.dart
+
 import 'package:flutter/material.dart';
-import 'package:kesehatan_ku/database/priceformat.dart';
+import 'package:intl/intl.dart';
 import 'package:kesehatan_ku/models/doktermodel.dart';
-import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter/BookAppointmentDialog.dart';
 
-// 1. PALET WARNA UTAMA (Diambil dari main.dart)
-const Color primaryAccent = Color(0xFF00A896); // Warna Aksen Utama
-const Color backgroundColor = Colors.white;
-const Color textColorDark = Color(0xFF1F2937);
-const Color consultColor = Color(0xFF1EC0C7); // Biru Tosca untuk Konsultasi
-const Color money = Colors.green;
-const Color judul = Color(0xFF00A896);
-
-// 2. UKURAN DAN DIMENSI (Diambil dari main.dart)
-const double pagePadding = 16.0;
-const double cardRadius = 15.0;
+// Warna-warna utama (diselaraskan dengan tema app kamu)
+const Color _pageBackground = Color.fromARGB(255, 201, 231, 226);
+const Color _primaryTeal = Color(0xFF00A896);
+const Color _primaryTealDark = Color(0xFF028090);
+const Color _textDark = Color(0xFF1F2937);
+const Color _textGrey = Color(0xFF6B7280);
 
 class DoctorListScreen extends StatelessWidget {
   final List<DoctorModel> doctors;
 
   const DoctorListScreen({super.key, required this.doctors});
 
-  // Catatan: Fungsi _formatPrice telah dihapus dan diganti dengan utilitas `formatPrice`.
+  // ---------- HELPER: Inisial nama dokter ----------
+  String _getDoctorInitials(String name) {
+    if (name.trim().isEmpty) return 'DR';
 
-  // Fungsi untuk menampilkan dialog booking yang lebih lengkap
-  Future<void> _showBookingDialog(
-    BuildContext context,
-    DoctorModel doctor,
-  ) async {
-    // Menampilkan BookAppointmentDialog yang lebih lengkap
-    final bool? confirmation = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return BookAppointmentDialog(doctor: doctor);
-      },
-    );
+    // buang "Dr", "dr", "dr." di depan kalau ada (tanpa (?i))
+    final cleaned = name
+        .replaceFirst(RegExp(r'^dr\.?\s*', caseSensitive: false), '')
+        .trim();
 
-    // Jika pengguna mengkonfirmasi booking
-    if (confirmation == true) {
-      _showBookingSuccess(context, doctor.name);
+    final parts = cleaned.split(RegExp(r'\s+'));
+    final List<String> initials = [];
+
+    for (final p in parts) {
+      if (p.isEmpty) continue;
+      initials.add(p[0].toUpperCase());
+      if (initials.length == 3) break; // maksimal 3 huruf
     }
+
+    return initials.join();
   }
 
-  // Fungsi untuk menampilkan pesan sukses
-  void _showBookingSuccess(BuildContext context, String doctorName) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✅ Booking dengan $doctorName berhasil dikonfirmasi!'),
-        backgroundColor: primaryAccent,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+  // ---------- HELPER: Format Rp 150.000 ----------
+  String _formatPrice(double price) {
+    final formatter = NumberFormat.decimalPattern('id_ID');
+    return formatter.format(price.round());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'Konsultasi & Dokter',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: judul,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(pagePadding),
-        itemCount: doctors.length,
-        itemBuilder: (context, index) {
-          final doctor = doctors[index];
-          return DoctorCard(
-            doctor: doctor,
-            onBookPressed: () => _showBookingDialog(
-              context,
-              doctor,
-            ), // Menghubungkan tombol ke dialog baru
-          );
-        },
-      ),
-    );
-  }
-}
-
-// Widget untuk menampilkan informasi dokter dalam bentuk Card
-class DoctorCard extends StatelessWidget {
-  final DoctorModel doctor;
-  final VoidCallback onBookPressed;
-
-  // Menghapus `formatPrice` dari konstruktor karena sekarang diimpor dari utils
-  const DoctorCard({
-    required this.doctor,
-    required this.onBookPressed,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 15),
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(cardRadius),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(pagePadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // Gambar/Inisial Dokter
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    doctor.imageUrl,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: doctor.specialization == 'Anak'
-                            ? Colors.pink.shade100
-                            : Colors.blue.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Text(
-                          doctor.name[0],
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                // Detail Dokter
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+      backgroundColor: _pageBackground,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ====== Back to Dashboard ======
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.arrow_back, size: 26, color: _textDark),
+                      SizedBox(width: 8),
                       Text(
-                        doctor.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textColorDark,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        doctor.specialization,
+                        'Back to Dashboard',
                         style: TextStyle(
-                          fontSize: 14,
-                          color: consultColor,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: _textDark,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        doctor.hospital,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-            const Divider(height: 25),
-            // Rating dan Harga
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+              ),
+              const SizedBox(height: 20),
+
+              // ====== Title & Subtitle ======
+              const Text(
+                'Konsultasi & Dokter',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: _textDark,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Book appointments with specialists',
+                style: TextStyle(fontSize: 14, color: _textGrey),
+              ),
+              const SizedBox(height: 20),
+
+              // ====== Telemedicine Card ======
+              _buildTelemedicineCard(context),
+              const SizedBox(height: 24),
+
+              // ====== Available Doctors ======
+              const Text(
+                'Available Doctors',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: _textDark,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: doctors.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final doctor = doctors[index];
+                  return _buildDoctorCard(
+                    context,
+                    doctor: doctor,
+                    initials: _getDoctorInitials(doctor.name),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ================== TELEMEDICINE CARD ==================
+  Widget _buildTelemedicineCard(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          colors: [_primaryTeal, _primaryTealDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _primaryTealDark.withOpacity(0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Text kiri
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 18),
-                    const SizedBox(width: 4),
                     Text(
-                      '${doctor.rating} (${doctor.reviews} Review)',
+                      'Telemedicine',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Consult from home',
+                      style: TextStyle(fontSize: 14, color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 12),
+              // Icon stetoskop kanan
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.medical_services_outlined,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Fitur Video Call belum diimplementasi.'),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: _primaryTealDark,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: const Text('Start Video Call'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================== DOCTOR CARD ==================
+  Widget _buildDoctorCard(
+    BuildContext context, {
+    required DoctorModel doctor,
+    required String initials,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.white),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ====== Bagian atas: avatar, info dokter, badge status ======
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Avatar inisial
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: _pageBackground,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: _primaryTeal.withOpacity(0.4),
+                    width: 1.2,
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  initials,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _primaryTealDark.withOpacity(0.9),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+
+              // Info Dokter
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      doctor.name,
                       style: const TextStyle(
-                        color: textColorDark,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: _textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      doctor.specialization,
+                      style: const TextStyle(fontSize: 13, color: _textGrey),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: _textGrey,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            doctor.location,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: _textGrey,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Badge status Available
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE6F9EE),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.circle, size: 10, color: Color(0xFF22C55E)),
+                    SizedBox(width: 4),
+                    Text(
+                      'Available',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF16A34A),
                       ),
                     ),
                   ],
                 ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          // ====== Bagian bawah: harga + next available + rating & tombol ======
+          // 1) Harga
+          Text(
+            'Rp ${_formatPrice(doctor.price)}',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF16A34A),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 2) Next available pill (lebar mengikuti teks, tidak full card)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE5F0FF),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.schedule, size: 16, color: Color(0xFF2563EB)),
+                const SizedBox(width: 6),
                 Text(
-                  // Menggunakan fungsi pemformatan global
-                  'Rp ${formatPrice(doctor.price)}',
+                  'Next available: ${doctor.nextAvailable}',
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: money,
+                    fontSize: 12,
+                    color: Color(0xFF1D4ED8),
                   ),
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            // Tombol Booking (dengan konfirmasi)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onBookPressed, // Memicu dialog konfirmasi
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: consultColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+          ),
+          const SizedBox(height: 8),
+
+          // 3) Rating + reviews (kiri) & tombol Book (kanan) -> satu baris
+          Row(
+            children: [
+              // Rating + reviews
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.star, size: 16, color: Color(0xFFF59E0B)),
+                  const SizedBox(width: 4),
+                  Text(
+                    doctor.rating.toStringAsFixed(1),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _textDark,
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: const Text(
-                  'Pesan Sekarang (Konsultasi)',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  const SizedBox(width: 4),
+                  Text(
+                    '(${doctor.reviewsCount} reviews)',
+                    style: const TextStyle(fontSize: 11, color: _textGrey),
+                  ),
+                ],
+              ),
+
+              const Spacer(),
+
+              // Tombol Book Appointment di kanan, sejajar rating
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 40, maxWidth: 160),
+                child: ElevatedButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Booking appointment dengan ${doctor.name}...',
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryTeal,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Book Appointment'),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }

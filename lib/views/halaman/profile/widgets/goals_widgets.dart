@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/models/health_datamodel.dart';
 import 'package:kesehatan_ku/views/halaman/profile/utils/color_extensions.dart';
-// Menggunakan path relatif untuk impor lokal
-
-import 'custom_card.dart';
+// ❌ import 'custom_card.dart';  // <- INI HAPUS, karena tidak dipakai
 
 // === Goals Tab Widgets ===
 
@@ -32,7 +30,6 @@ class GoalProgressCard extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              // Menampilkan nilai saat ini/target dengan format yang benar
               '${goal.current.toStringAsFixed(goal.unit == 'kg' ? 0 : 1)}/${goal.target.toStringAsFixed(goal.unit == 'kg' ? 0 : 1)} ${goal.unit}',
               style: TextStyle(
                 fontSize: 15,
@@ -46,7 +43,6 @@ class GoalProgressCard extends StatelessWidget {
         LinearProgressIndicator(
           value: goal.progress,
           backgroundColor: Colors.grey.shade200,
-          // Menggunakan warna primer dari tema (Biru/Teal)
           valueColor: AlwaysStoppedAnimation<Color>(
             Theme.of(context).primaryColor,
           ),
@@ -71,15 +67,10 @@ class ComparisonRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color changeColor = Colors.grey.shade500;
-    // Menentukan warna berdasarkan perubahan (naik/turun/stabil)
-    // Dibiarkan Merah/Hijau untuk representasi Kesehatan (Buruk/Baik), bukan warna tema.
     if (comparison.change.startsWith('+')) {
-      changeColor =
-          Colors.red.shade600; // Merah untuk kenaikan (biasanya buruk)
+      changeColor = Colors.red.shade600;
     } else if (comparison.change.startsWith('-')) {
-      changeColor = Colors
-          .green
-          .shade600; // Hijau untuk penurunan (biasanya baik, misal BB)
+      changeColor = Colors.green.shade600;
     }
 
     return Padding(
@@ -153,7 +144,6 @@ class AwardTile extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                // Menggunakan ColorBrightness extension dari color_extensions.dart
                 color: award.iconColor.darken(0.3),
               ),
             ),

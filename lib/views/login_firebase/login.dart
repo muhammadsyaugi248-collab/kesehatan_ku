@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-// HAPUS ini kalau sudah tidak dipakai lagi
-// import 'package:kesehatan_ku/database/db_helper.dart';
-
 import 'package:kesehatan_ku/preferences/preference_handler.dart';
 import 'package:kesehatan_ku/services/firebase.dart';
 import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
 import 'package:kesehatan_ku/views/register_firebase/register.dart';
-// ✅ TAMBAHKAN INI (sesuaikan path-nya dengan project kamu)
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,8 +15,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   bool _isPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -99,7 +95,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        print('Forgot Password ditekan!');
+                        // TODO: forgot password logic
+                        debugPrint('Forgot Password ditekan!');
                       },
                       child: const Text(
                         'Forgot Password?',
@@ -157,6 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (value == null || value.isEmpty) {
           return 'Email tidak boleh kosong';
         }
+        // optional: validasi format email
         return null;
       },
     );
@@ -244,22 +242,17 @@ class _LoginScreenState extends State<LoginScreen> {
       child: ElevatedButton(
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
-            // Trim spasi biar ga ngacauin login
             final email = _emailController.text.trim();
             final password = _passwordController.text.trim();
 
-            // ✅ PANGGIL FIREBASE LOGIN
             final user = await FirebaseService.loginUser(
               email: email,
               password: password,
             );
 
             if (user != null) {
-              // kalau kamu punya simpan user di shared preferences, bisa taruh di sini
-              PreferenceHandler.saveLogin(true);
-              // contoh kalau kamu mau simpan email & uid (opsional, tergantung PreferenceHandler kamu)
-              // await PreferenceHandler.saveUserEmail(user.email ?? "");
-              // await PreferenceHandler.saveUserId(user.uid ?? "");
+              // simpan status login
+              await PreferenceHandler.saveLogin(true);
 
               Navigator.pushReplacement(
                 context,
@@ -290,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => RegistrationScreen(),
+                            builder: (context) => const RegistrationScreen(),
                           ),
                         );
                       },
@@ -324,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => RegistrationScreen()),
+            MaterialPageRoute(builder: (context) => const RegistrationScreen()),
           );
         },
         style: OutlinedButton.styleFrom(

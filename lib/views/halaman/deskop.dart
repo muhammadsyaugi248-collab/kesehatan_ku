@@ -1,10 +1,14 @@
+// File: lib/views/halaman/fitur_deskop/deskop.dart
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:kesehatan_ku/models/doktermodel.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter/tombolkonsultasi.dart';
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/obat_catatan/obat_catatan_screen.dart';
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/riwayat_kesehatan/riwayat_kesehatan_screen.dart';
 
 // 1. PALET WARNA UTAMA (Color Palette)
 
@@ -19,15 +23,17 @@ const Color textColorDark = Color(0xFF1F2937); // Hitam Gelap untuk Keterbacaan
 const Color iconAqua = Color(0xFF1FB2A5); // Ikon Kesehatan Fisik
 const Color iconGreen = Color(0xFF8BC34A); // Ikon Nutrisi
 
-// --- Warna Tambahan untuk Modul Baru ---
+// --- Warna Tambahan untuk Modul Baru (Disesuaikan dengan Gambar) ---
 const Color consultColor = Color(0xFF1EC0C7); // Biru Tosca untuk Konsultasi
 const Color locationColor = Color(0xFF5A66F9); // Biru Ungu untuk Fasilitas
 const Color historyColor = Color(0xFF6C757D); // Abu-abu gelap untuk Riwayat
-const Color medicationColor = Color(0xFFF7346B); // Pink untuk Obat
+const Color medicationColor = Color(0xFFF7346B); // Merah muda/Pink untuk Obat
 const Color newsColor = Color(0xFFFF9900); // Orange untuk Berita
 const Color accessibilityColor = Color(0xFF9060F7); // Ungu untuk Aksesibilitas
+// -------------------------------------------------------------------
 
 // 2. UKURAN DAN DIMENSI (Spacing & Radius)
+
 const double pagePadding = 16.0;
 const double blockSpacing = 20.0;
 const double cardSpacing = 10.0;
@@ -51,7 +57,7 @@ class deskop extends StatelessWidget {
   }
 }
 
-// ⭐ Placeholder untuk halaman yang belum dibuat
+// ⭐ WIDGET BARU: Placeholder untuk halaman yang belum dibuat
 class PlaceholderWidget extends StatelessWidget {
   final String title;
   const PlaceholderWidget(this.title, {super.key});
@@ -80,84 +86,135 @@ class HealthHomePage extends StatefulWidget {
 }
 
 class _HealthHomePageState extends State<HealthHomePage> {
-  // ------- STATE USER / SAPAAN -------
-  String _userName = 'Pengguna';
+  // === STATE USERNAME DARI FIREBASE ===
+  String _username = 'Teman Sehat';
+  bool _isLoadingName = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUsernameFromFirestore();
   }
 
-  // Ambil nama dari FirebaseAuth (kalau ada)
-  Future<void> _loadUserName() async {
-    final user = FirebaseAuth.instance.currentUser;
+  /// Ambil username dari Firestore: users/{uid}/username
+  Future<void> _loadUsernameFromFirestore() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
 
-    if (!mounted) return;
-
-    setState(() {
-      if (user != null) {
-        if (user.displayName != null && user.displayName!.trim().isNotEmpty) {
-          _userName = user.displayName!.trim();
-        } else if (user.email != null && user.email!.isNotEmpty) {
-          _userName = user.email!.split('@').first;
-        }
+      // User belum login
+      if (user == null) {
+        if (!mounted) return;
+        setState(() {
+          _username = 'Teman Sehat';
+          _isLoadingName = false;
+        });
+        return;
       }
-    });
+
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!mounted) return;
+
+      final data = doc.data();
+      final usernameFromDb = data != null ? data['username'] as String? : null;
+
+      setState(() {
+        // Pakai field "username" yang kamu simpan di Firestore
+        if (usernameFromDb != null && usernameFromDb.trim().isNotEmpty) {
+          _username = usernameFromDb.trim();
+        } else {
+          // fallback terakhir kalau username kosong
+          _username = 'Teman Sehat';
+        }
+        _isLoadingName = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _username = 'Teman Sehat';
+        _isLoadingName = false;
+      });
+    }
   }
 
-  // Sapaan dinamis (pagi / siang / sore / malam)
+  /// Tentukan sapaan berdasarkan jam sekarang
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour >= 4 && hour < 11) return 'Selamat pagi';
-    if (hour >= 11 && hour < 15) return 'Selamat siang';
-    if (hour >= 15 && hour < 18) return 'Selamat sore';
-    return 'Selamat malam';
-  }
-
-  // Tanggal hari ini
-  String _getTodayString() {
-    // Kalau mau full Indonesia pastikan intl locale sudah di-setup
-    return DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(DateTime.now());
-  }
-
-  // Inisial untuk avatar (dua huruf pertama nama)
-  String _getInitials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.length == 1) {
-      return parts.first
-          .substring(0, parts.first.length >= 2 ? 2 : 1)
-          .toUpperCase();
+    if (hour >= 5 && hour < 11) {
+      return 'Selamat pagi';
+    } else if (hour >= 11 && hour < 15) {
+      return 'Selamat siang';
+    } else if (hour >= 15 && hour < 18) {
+      return 'Selamat sore';
+    } else {
+      return 'Selamat malam';
     }
-    return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
   }
 
-  // ------- DATA MENU -------
-  late final List<Map<String, dynamic>> menuItems = [
+  /// Format tanggal dalam bahasa Indonesia sederhana
+  String _formatTodayDate() {
+    final now = DateTime.now();
+    const hari = [
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
+    const bulan = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+
+    final namaHari = hari[(now.weekday - 1) % 7];
+    final namaBulan = bulan[(now.month - 1) % 12];
+
+    return '$namaHari, ${now.day} $namaBulan ${now.year}';
+  }
+
+  // === MENU ITEMS (tetap seperti versi kamu) ===
+  final List<Map<String, dynamic>> menuItems = [
+    // Modul Lama (4)
     {
       'title': 'Kesehatan Fisik',
       'icon': Icons.favorite_border,
-      'color': iconAqua,
-      'route': const PlaceholderWidget('Kesehatan Fisik'),
+      'color': iconAqua, // #1FB2A5
+      'route': const PlaceholderWidget('Kesehatan Fisik'), // Route 1
     },
     {
       'title': 'Nutrisi & Pola Makan',
       'icon': Icons.apple,
-      'color': iconGreen,
-      'route': const PlaceholderWidget('Nutrisi & Pola Makan'),
+      'color': iconGreen, // #8BC34A
+      'route': const PlaceholderWidget('Nutrisi & Pola Makan'), // Route 2
     },
     {
       'title': 'Kebugaran',
       'icon': Icons.fitness_center,
       'color': Colors.deepOrange,
-      'route': const PlaceholderWidget('Kebugaran'),
+      'route': const PlaceholderWidget('Kebugaran'), // Route 3
     },
     {
       'title': 'Kesehatan Mental',
       'icon': Icons.psychology_outlined,
       'color': Colors.purple,
-      'route': const MentalHealthScreen(),
+      'route': const MentalHealthScreen(), // Route 4
     },
+    // --- Modul Tambahan BARU (6) ---
     {
       'title': 'Konsultasi & Dokter',
       'icon': Icons.medical_services,
@@ -174,13 +231,13 @@ class _HealthHomePageState extends State<HealthHomePage> {
       'title': 'Riwayat Kesehatan',
       'icon': Icons.description_outlined,
       'color': historyColor,
-      'route': const PlaceholderWidget('Riwayat Kesehatan'),
+      'route': const MedicalHistoryScreen(),
     },
     {
       'title': 'Obat & Catatan',
       'icon': Icons.medical_services_outlined,
       'color': medicationColor,
-      'route': const PlaceholderWidget('Obat & Catatan'),
+      'route': const ObatCatatanScreen(),
     },
     {
       'title': 'Berita & Edukasi',
@@ -196,9 +253,103 @@ class _HealthHomePageState extends State<HealthHomePage> {
     },
   ];
 
+  /// Kartu sapaan di bagian paling atas
+  Widget _buildGreetingCard() {
+    final greeting = _getGreeting(); // Selamat pagi/siang/sore/malam
+    final today = _formatTodayDate();
+    final displayName = _isLoadingName
+        ? '...'
+        : _username; // sementara "..." saat loading
+
+    // ambil inisial untuk avatar
+    String initials = 'U';
+    if (displayName.trim().isNotEmpty && displayName != '...') {
+      final parts = displayName.trim().split(' ');
+      if (parts.length == 1) {
+        initials = parts.first.characters.first.toUpperCase();
+      } else {
+        initials = (parts[0].characters.first + parts[1].characters.first)
+            .toUpperCase();
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(cardRadius),
+        gradient: const LinearGradient(
+          colors: [iconAqua, primaryAccent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: primaryAccent.withOpacity(0.4),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Teks sapaan
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Baris: "Selamat pagi, Asep! 👋"
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        '$greeting, $displayName!',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text('👋', style: TextStyle(fontSize: 20)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  today,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Circle Avatar dengan inisial
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: Colors.white,
+            child: Text(
+              initials,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: primaryAccent.withOpacity(0.9),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Hitung lebar kartu menu agar pas 2 kolom
+    // Menghitung lebar kartu menu agar benar-benar pas 2 kolom
     final double availableWidth =
         MediaQuery.of(context).size.width - (2 * pagePadding);
     final double cardWidth = (availableWidth - cardSpacing) / 2;
@@ -212,8 +363,8 @@ class _HealthHomePageState extends State<HealthHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              // Bagian 1: HEADER SAPAAN DINAMIS
-              _buildGreetingHeader(),
+              // Bagian 1: Header Sapaan Dinamis
+              _buildGreetingCard(),
 
               const SizedBox(height: blockSpacing),
 
@@ -282,88 +433,6 @@ class _HealthHomePageState extends State<HealthHomePage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  // ===== HEADER WIDGET (SAPaan + TANGGAL + AVATAR) =====
-  Widget _buildGreetingHeader() {
-    final greeting = _getGreeting(); // Selamat pagi/siang/sore/malam
-    final dateText = _getTodayString();
-    final initials = _getInitials(_userName);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [iconAqua, primaryAccent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(cardRadius),
-        boxShadow: [
-          BoxShadow(
-            color: primaryAccent.withOpacity(0.4),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Teks sapaan + tanggal
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$greeting,',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _userName,
-                  style: const TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  dateText,
-                  style: const TextStyle(
-                    fontSize: 12.0,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
-          // Circle Avatar inisial user
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: Colors.white,
-            child: Text(
-              initials,
-              style: const TextStyle(
-                color: primaryAccent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

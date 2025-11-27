@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/views/bottom_navigator/bottom_navigator.dart';
 import 'package:kesehatan_ku/views/login_firebase/login.dart';
-import 'package:kesehatan_ku/views/login_screen_sqflite/login.dart';
 
 // Definisi warna utama untuk konsistensi dengan desain Figma
 const _primaryColor = Color(0xFF4C7FFF); // Warna biru utama
