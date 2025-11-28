@@ -27,19 +27,16 @@ Color trendColor(String change) {
   final text = change.trim().toLowerCase();
 
   if (text.startsWith('+')) {
-    // perubahan naik (positif)
-    return Colors.green.shade600;
+    return Colors.green.shade600; // naik
   }
   if (text.startsWith('-')) {
-    // perubahan turun (negatif)
-    return Colors.red.shade600;
+    return Colors.red.shade600; // turun
   }
   if (text.contains('perhatian') ||
       text.contains('waspada') ||
       text.contains('high') ||
       text.contains('tinggi')) {
-    // perlu perhatian
-    return Colors.orange.shade700;
+    return Colors.orange.shade700; // perlu perhatian
   }
   return kTextGrey;
 }
@@ -116,11 +113,15 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.dispose();
   }
 
+  // ========= PERUBAHAN 1: logika member since pakai creationTime =========
   String _memberSinceText() {
     final user = _firebaseUser;
-    if (user?.metadata.creationTime == null) return 'Member';
+    final created = user?.metadata.creationTime;
 
-    final dt = user!.metadata.creationTime!;
+    if (created == null) return 'Member';
+
+    final dt = created.toLocal();
+
     const months = [
       'January',
       'February',
@@ -135,7 +136,12 @@ class _ProfileScreenState extends State<ProfileScreen>
       'November',
       'December',
     ];
-    return 'Member since ${months[dt.month - 1]} ${dt.year}';
+
+    final monthName = months[dt.month - 1];
+    final year = dt.year.toString();
+
+    // Contoh hasil: "Member since November 2025"
+    return 'Member since $monthName $year';
   }
 
   Widget _buildProfileHeader(BuildContext context) {
@@ -160,7 +166,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         children: [
           // Info profil
           Padding(
-            padding: const EdgeInsets.only(top: 20.0, left: 16.0, right: 16.0),
+            padding: const EdgeInsets.only(top: 36.0, left: 16.0, right: 16.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -188,7 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 8),
                       Text(
                         username,
                         style: const TextStyle(
@@ -197,6 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           color: Colors.white,
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         email,
                         style: TextStyle(
@@ -204,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           color: Colors.white.withOpacity(0.9),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
                           Icon(
@@ -213,11 +220,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                             color: Colors.white.withOpacity(0.85),
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            _memberSinceText(),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.85),
+                          // ========= PERUBAHAN 2: teks tidak dipotong "..." =========
+                          Flexible(
+                            child: Text(
+                              _memberSinceText(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withOpacity(0.85),
+                              ),
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.visible,
                             ),
                           ),
                         ],
@@ -225,40 +238,44 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 // Tombol Edit Profile
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final changed = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => EditProfileScreen(
-                          initialUsername: username,
-                          initialEmail: email,
-                          initialPhotoUrl: photoUrl,
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final changed = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => EditProfileScreen(
+                            initialUsername: username,
+                            initialEmail: email,
+                            initialPhotoUrl: photoUrl,
+                          ),
                         ),
-                      ),
-                    );
+                      );
 
-                    if (changed == true && mounted) {
-                      _loadProfile(); // refresh data
-                    }
-                  },
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text('Edit Profile'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white, width: 1.5),
-                    backgroundColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      if (changed == true && mounted) {
+                        _loadProfile(); // refresh data
+                      }
+                    },
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: const Text('Edit Profile'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white, width: 1.5),
+                      backgroundColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -443,7 +460,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         const SnackBar(content: Text('Profil berhasil diperbarui')),
       );
 
-      Navigator.pop(context, true); // kirim "berhasil" ke ProfileScreen
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       hideLoadingDialog(context);
@@ -455,6 +472,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  InputDecoration _fieldDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: kPrimaryTealDark, width: 1.4),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.4),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.4),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final initial = widget.initialUsername.isNotEmpty
@@ -462,140 +508,177 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         : 'U';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-        backgroundColor: kProfileBg,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
       backgroundColor: kProfileBg,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                // avatar + tombol kamera
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey.shade300,
-                      backgroundImage: _pickedImageFile != null
-                          ? FileImage(_pickedImageFile!)
-                          : (widget.initialPhotoUrl != null &&
-                                widget.initialPhotoUrl!.isNotEmpty)
-                          ? NetworkImage(widget.initialPhotoUrl!)
-                                as ImageProvider
-                          : null,
-                      child:
-                          (_pickedImageFile == null &&
-                              (widget.initialPhotoUrl == null ||
-                                  widget.initialPhotoUrl!.isEmpty))
-                          ? Text(
-                              initial,
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black54,
-                              ),
-                            )
-                          : null,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 4,
-                      child: InkWell(
-                        onTap: _pickImage,
-                        borderRadius: BorderRadius.circular(18),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.black,
-                          ),
-                          padding: const EdgeInsets.all(6),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            size: 18,
-                            color: Colors.white,
+        child: Column(
+          children: [
+            // header gradient seperti profil
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              decoration: const BoxDecoration(gradient: headerGradient),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Edit Profile',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // avatar + tombol kamera
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white,
+                        backgroundImage: _pickedImageFile != null
+                            ? FileImage(_pickedImageFile!)
+                            : (widget.initialPhotoUrl != null &&
+                                  widget.initialPhotoUrl!.isNotEmpty)
+                            ? NetworkImage(widget.initialPhotoUrl!)
+                                  as ImageProvider
+                            : null,
+                        child:
+                            (_pickedImageFile == null &&
+                                (widget.initialPhotoUrl == null ||
+                                    widget.initialPhotoUrl!.isEmpty))
+                            ? Text(
+                                initial,
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF00838F),
+                                ),
+                              )
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: InkWell(
+                          onTap: _pickImage,
+                          borderRadius: BorderRadius.circular(18),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black,
+                            ),
+                            padding: const EdgeInsets.all(6),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 18,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    labelText: 'Nama Lengkap',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    ],
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Nama tidak boleh kosong';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Email tidak boleh kosong';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Format email tidak valid';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _saving ? null : _onSavePressed,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: kPrimaryTeal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    child: _saving
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Simpan Perubahan'),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+
+            // body putih dengan field
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Nama Lengkap',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kTextDark,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _usernameController,
+                        decoration: _fieldDecoration('Masukkan nama lengkap'),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Nama tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'Email',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kTextDark,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: _fieldDecoration('Masukkan email aktif'),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email tidak boleh kosong';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Format email tidak valid';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _saving ? null : _onSavePressed,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryTeal,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: _saving
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('Simpan Perubahan'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -642,7 +725,6 @@ class HealthTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // dummy data
     final conditions = [
       {'name': 'Hipertensi Ringan', 'severity': 'Ringan'},
       {'name': 'Defisiensi Vitamin D', 'severity': 'Sedang'},
@@ -663,7 +745,6 @@ class HealthTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
-        // Metric row
         ProfileCard(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Row(
@@ -696,10 +777,7 @@ class HealthTab extends StatelessWidget {
             ],
           ),
         ),
-
         const SizedBox(height: 8),
-
-        // Kondisi medis
         ProfileCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -757,8 +835,6 @@ class HealthTab extends StatelessWidget {
             ],
           ),
         ),
-
-        // Alergi
         ProfileCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -803,8 +879,6 @@ class HealthTab extends StatelessWidget {
             ],
           ),
         ),
-
-        // Rekomendasi
         ProfileCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -866,7 +940,6 @@ class MetricPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = trendColor(detail);
-
     final bool isChange =
         detail.trim().startsWith('+') || detail.trim().startsWith('-');
 
@@ -988,13 +1061,13 @@ class GoalsTab extends StatelessWidget {
       VitalsData(
         label: 'Berat Badan',
         value: '78 kg',
-        change: '-1.5', // turun -> merah
+        change: '-1.5',
         icon: Icons.scale_outlined,
       ),
       VitalsData(
         label: 'IMT',
         value: '25.3',
-        change: '+0.4', // naik -> hijau
+        change: '+0.4',
         icon: Icons.straighten,
       ),
       VitalsData(
@@ -1014,7 +1087,6 @@ class GoalsTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
-        // Progres target
         ProfileCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1037,8 +1109,6 @@ class GoalsTab extends StatelessWidget {
             ],
           ),
         ),
-
-        // Perbandingan vital
         ProfileCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1281,7 +1351,7 @@ class AwardsTab extends StatelessWidget {
                     children: [
                       Container(
                         padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
                         ),
