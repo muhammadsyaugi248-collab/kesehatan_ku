@@ -1,12 +1,14 @@
 // File: lib/views/halaman/fitur_deskop/deskop.dart
 
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/models/doktermodel.dart';
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/fasilitas_terdekat/fasilitas_terdekat_screen.dart';
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/kebugaran/kebugaran_screen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/konsultasi_dokter/tombolkonsultasi.dart';
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/nutrisi_pola_makan/nutrisi_pola_makan_screen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/obat_catatan/obat_catatan_screen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/riwayat_kesehatan/riwayat_kesehatan_screen.dart';
 
@@ -190,23 +192,23 @@ class _HealthHomePageState extends State<HealthHomePage> {
   // === MENU ITEMS (tetap seperti versi kamu) ===
   final List<Map<String, dynamic>> menuItems = [
     // Modul Lama (4)
-    {
-      'title': 'Kesehatan Fisik',
-      'icon': Icons.favorite_border,
-      'color': iconAqua, // #1FB2A5
-      'route': const PlaceholderWidget('Kesehatan Fisik'), // Route 1
-    },
+    // {
+    //   'title': 'Kesehatan Fisik',
+    //   'icon': Icons.favorite_border,
+    //   'color': iconAqua, // #1FB2A5
+    //   'route': const PlaceholderWidget('Kesehatan Fisik'), // Route 1
+    // },
     {
       'title': 'Nutrisi & Pola Makan',
       'icon': Icons.apple,
       'color': iconGreen, // #8BC34A
-      'route': const PlaceholderWidget('Nutrisi & Pola Makan'), // Route 2
+      'route': const NutritionScreen(), // Route 2
     },
     {
       'title': 'Kebugaran',
       'icon': Icons.fitness_center,
       'color': Colors.deepOrange,
-      'route': const PlaceholderWidget('Kebugaran'), // Route 3
+      'route': const KebugaranScreen(), // Route 3
     },
     {
       'title': 'Kesehatan Mental',
@@ -225,7 +227,7 @@ class _HealthHomePageState extends State<HealthHomePage> {
       'title': 'Fasilitas Terdekat',
       'icon': Icons.location_on_outlined,
       'color': locationColor,
-      'route': const PlaceholderWidget('Fasilitas Terdekat'),
+      'route': const FasilitasTerdekatScreen(),
     },
     {
       'title': 'Riwayat Kesehatan',
@@ -239,12 +241,12 @@ class _HealthHomePageState extends State<HealthHomePage> {
       'color': medicationColor,
       'route': const ObatCatatanScreen(),
     },
-    {
-      'title': 'Berita & Edukasi',
-      'icon': Icons.article_outlined,
-      'color': newsColor,
-      'route': const PlaceholderWidget('Berita & Edukasi'),
-    },
+    // {
+    //   'title': 'Berita & Edukasi',
+    //   'icon': Icons.article_outlined,
+    //   'color': newsColor,
+    //   'route': const PlaceholderWidget('Berita & Edukasi'),
+    // },
     {
       'title': 'Aksesibilitas',
       'icon': Icons.visibility_outlined,
