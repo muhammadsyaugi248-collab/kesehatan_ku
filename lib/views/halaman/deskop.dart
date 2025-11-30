@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/models/doktermodel.dart';
+import 'package:kesehatan_ku/views/halaman/fitur_deskop/aksebility/aksesibilitas.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/fasilitas_terdekat/fasilitas_terdekat_screen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kebugaran/kebugaran_screen.dart';
 import 'package:kesehatan_ku/views/halaman/fitur_deskop/kesehatanMental/MentalHealthScreen.dart';
@@ -88,18 +89,19 @@ class HealthHomePage extends StatefulWidget {
 }
 
 class _HealthHomePageState extends State<HealthHomePage> {
-  // === STATE USERNAME DARI FIREBASE ===
+  // === STATE USERNAME & PHOTO DARI FIREBASE ===
   String _username = 'Teman Sehat';
+  String? _photoUrl; // <-- URL foto profil dari Firestore / FirebaseAuth
   bool _isLoadingName = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUsernameFromFirestore();
+    _loadUserFromFirestore();
   }
 
-  /// Ambil username dari Firestore: users/{uid}/username
-  Future<void> _loadUsernameFromFirestore() async {
+  /// Ambil username + photoUrl dari Firestore: users/{uid}
+  Future<void> _loadUserFromFirestore() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
 
@@ -108,6 +110,7 @@ class _HealthHomePageState extends State<HealthHomePage> {
         if (!mounted) return;
         setState(() {
           _username = 'Teman Sehat';
+          _photoUrl = null;
           _isLoadingName = false;
         });
         return;
@@ -122,21 +125,32 @@ class _HealthHomePageState extends State<HealthHomePage> {
 
       final data = doc.data();
       final usernameFromDb = data != null ? data['username'] as String? : null;
+      final photoFromDb = data != null ? data['photoUrl'] as String? : null;
 
       setState(() {
-        // Pakai field "username" yang kamu simpan di Firestore
+        // username
         if (usernameFromDb != null && usernameFromDb.trim().isNotEmpty) {
           _username = usernameFromDb.trim();
         } else {
-          // fallback terakhir kalau username kosong
           _username = 'Teman Sehat';
         }
+
+        // foto profil: prioritas Firestore -> FirebaseAuth.photoURL
+        if (photoFromDb != null && photoFromDb.isNotEmpty) {
+          _photoUrl = photoFromDb;
+        } else if (user.photoURL != null && user.photoURL!.isNotEmpty) {
+          _photoUrl = user.photoURL;
+        } else {
+          _photoUrl = null;
+        }
+
         _isLoadingName = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _username = 'Teman Sehat';
+        _photoUrl = null;
         _isLoadingName = false;
       });
     }
@@ -191,13 +205,6 @@ class _HealthHomePageState extends State<HealthHomePage> {
 
   // === MENU ITEMS (tetap seperti versi kamu) ===
   final List<Map<String, dynamic>> menuItems = [
-    // Modul Lama (4)
-    // {
-    //   'title': 'Kesehatan Fisik',
-    //   'icon': Icons.favorite_border,
-    //   'color': iconAqua, // #1FB2A5
-    //   'route': const PlaceholderWidget('Kesehatan Fisik'), // Route 1
-    // },
     {
       'title': 'Nutrisi & Pola Makan',
       'icon': Icons.apple,
@@ -216,7 +223,6 @@ class _HealthHomePageState extends State<HealthHomePage> {
       'color': Colors.purple,
       'route': const MentalHealthScreen(), // Route 4
     },
-    // --- Modul Tambahan BARU (6) ---
     {
       'title': 'Konsultasi & Dokter',
       'icon': Icons.medical_services,
@@ -241,17 +247,11 @@ class _HealthHomePageState extends State<HealthHomePage> {
       'color': medicationColor,
       'route': const ObatCatatanScreen(),
     },
-    // {
-    //   'title': 'Berita & Edukasi',
-    //   'icon': Icons.article_outlined,
-    //   'color': newsColor,
-    //   'route': const PlaceholderWidget('Berita & Edukasi'),
-    // },
     {
       'title': 'Aksesibilitas',
       'icon': Icons.visibility_outlined,
       'color': accessibilityColor,
-      'route': const PlaceholderWidget('Aksesibilitas'),
+      'route': AccessibilityScreen(),
     },
   ];
 
@@ -259,9 +259,7 @@ class _HealthHomePageState extends State<HealthHomePage> {
   Widget _buildGreetingCard() {
     final greeting = _getGreeting(); // Selamat pagi/siang/sore/malam
     final today = _formatTodayDate();
-    final displayName = _isLoadingName
-        ? '...'
-        : _username; // sementara "..." saat loading
+    final displayName = _isLoadingName ? '...' : _username;
 
     // ambil inisial untuk avatar
     String initials = 'U';
@@ -273,6 +271,12 @@ class _HealthHomePageState extends State<HealthHomePage> {
         initials = (parts[0].characters.first + parts[1].characters.first)
             .toUpperCase();
       }
+    }
+
+    // siapkan image provider dari photoUrl (kalau ada)
+    ImageProvider? avatarImage;
+    if (_photoUrl != null && _photoUrl!.isNotEmpty) {
+      avatarImage = NetworkImage(_photoUrl!);
     }
 
     return Container(
@@ -331,18 +335,21 @@ class _HealthHomePageState extends State<HealthHomePage> {
             ),
           ),
           const SizedBox(width: 12),
-          // Circle Avatar dengan inisial
+          // Circle Avatar: pakai foto profil kalau ada, kalau tidak pakai inisial
           CircleAvatar(
             radius: 22,
             backgroundColor: Colors.white,
-            child: Text(
-              initials,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: primaryAccent.withOpacity(0.9),
-              ),
-            ),
+            backgroundImage: avatarImage,
+            child: avatarImage == null
+                ? Text(
+                    initials,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: primaryAccent.withOpacity(0.9),
+                    ),
+                  )
+                : null,
           ),
         ],
       ),

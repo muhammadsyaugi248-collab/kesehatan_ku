@@ -1,12 +1,10 @@
 // lib/views/halaman/profile/profile_screen.dart
 
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:kesehatan_ku/models/health_stats.dart';
+import 'package:kesehatan_ku/views/halaman/profile/screen/edit_profile_screen.dart';
 
 /// ================== WARNA & GRADIENT ==================
 
@@ -58,6 +56,48 @@ void hideLoadingDialog(BuildContext context) {
   }
 }
 
+/// Helper status – cuma buat tampilan, bukan diagnosis medis.
+String classifyTotalCholesterol(double total) {
+  if (total <= 0) return 'Tidak ada data';
+  if (total < 200) return 'Baik';
+  if (total < 240) return 'Perlu perhatian';
+  return 'Tinggi';
+}
+
+String classifyGlucose(double g) {
+  if (g <= 0) return 'Tidak ada data';
+  if (g < 100) return 'Normal';
+  if (g < 126) return 'Perlu perhatian';
+  return 'Tinggi';
+}
+
+String classifyBloodPressure(int sys, int dia) {
+  if (sys == 0 || dia == 0) return 'Tidak ada data';
+  if (sys < 120 && dia < 80) return 'Normal';
+  if (sys < 140 && dia < 90) return 'Perlu perhatian';
+  return 'Tinggi';
+}
+
+String classifyUricAcid(double u) {
+  if (u <= 0) return 'Tidak ada data';
+  if (u <= 7.0) return 'Normal';
+  return 'Tinggi';
+}
+
+Color statusColor(String status) {
+  final s = status.toLowerCase();
+  if (s.contains('baik') || s.contains('normal')) {
+    return Colors.green.shade600;
+  }
+  if (s.contains('perhatian')) {
+    return Colors.orange.shade700;
+  }
+  if (s.contains('tinggi')) {
+    return Colors.red.shade600;
+  }
+  return kTextGrey;
+}
+
 /// ================== PROFILE SCREEN ==================
 
 class ProfileScreen extends StatefulWidget {
@@ -75,6 +115,9 @@ class _ProfileScreenState extends State<ProfileScreen>
   DocumentSnapshot<Map<String, dynamic>>? _userDoc;
   bool _loadingProfile = true;
 
+  HealthStats? _healthStats;
+  bool _vitalsUpdatedByUser = false;
+
   @override
   void initState() {
     super.initState();
@@ -90,19 +133,36 @@ class _ProfileScreenState extends State<ProfileScreen>
       setState(() {
         _firebaseUser = null;
         _userDoc = null;
+        _healthStats = null;
+        _vitalsUpdatedByUser = false;
         _loadingProfile = false;
       });
       return;
     }
 
+    // ---- ambil dokumen user dari Firestore ----
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .get();
 
+    final data = doc.data();
+    HealthStats? stats;
+    bool updatedFlag = false;
+
+    if (data != null) {
+      final healthMap = data['healthStats'];
+      if (healthMap is Map<String, dynamic>) {
+        stats = HealthStats.fromMap(healthMap);
+      }
+      updatedFlag = (data['vitalsUpdatedByUser'] ?? false) as bool;
+    }
+
     setState(() {
       _firebaseUser = user;
       _userDoc = doc;
+      _healthStats = stats;
+      _vitalsUpdatedByUser = updatedFlag;
       _loadingProfile = false;
     });
   }
@@ -113,15 +173,11 @@ class _ProfileScreenState extends State<ProfileScreen>
     super.dispose();
   }
 
-  // ========= PERUBAHAN 1: logika member since pakai creationTime =========
   String _memberSinceText() {
     final user = _firebaseUser;
-    final created = user?.metadata.creationTime;
+    if (user?.metadata.creationTime == null) return 'Member';
 
-    if (created == null) return 'Member';
-
-    final dt = created.toLocal();
-
+    final dt = user!.metadata.creationTime!;
     const months = [
       'January',
       'February',
@@ -136,12 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       'November',
       'December',
     ];
-
-    final monthName = months[dt.month - 1];
-    final year = dt.year.toString();
-
-    // Contoh hasil: "Member since November 2025"
-    return 'Member since $monthName $year';
+    return 'Member since ${months[dt.month - 1]} ${dt.year}';
   }
 
   Widget _buildProfileHeader(BuildContext context) {
@@ -158,6 +209,11 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     final initial = username.isNotEmpty ? username[0].toUpperCase() : 'U';
 
+    ImageProvider? avatarImage;
+    if (photoUrl != null && photoUrl.isNotEmpty) {
+      avatarImage = NetworkImage(photoUrl);
+    }
+
     return Container(
       decoration: const BoxDecoration(gradient: headerGradient),
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -166,27 +222,28 @@ class _ProfileScreenState extends State<ProfileScreen>
         children: [
           // Info profil
           Padding(
-            padding: const EdgeInsets.only(top: 36.0, left: 16.0, right: 16.0),
+            padding: const EdgeInsets.only(top: 32.0, left: 16.0, right: 16.0),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Foto profil
-                CircleAvatar(
-                  radius: 35,
-                  backgroundColor: Colors.white,
-                  backgroundImage: photoUrl != null && photoUrl.isNotEmpty
-                      ? NetworkImage(photoUrl)
-                      : null,
-                  child: (photoUrl == null || photoUrl.isEmpty)
-                      ? Text(
-                          initial,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF00838F),
-                          ),
-                        )
-                      : null,
+                // Foto profil – sedikit turun biar sejajar teks
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                  child: CircleAvatar(
+                    radius: 35,
+                    backgroundColor: Colors.white,
+                    backgroundImage: avatarImage,
+                    child: avatarImage == null
+                        ? Text(
+                            initial,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF00838F),
+                            ),
+                          )
+                        : null,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 // Nama & email
@@ -194,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Text(
                         username,
                         style: const TextStyle(
@@ -220,7 +277,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                             color: Colors.white.withOpacity(0.85),
                           ),
                           const SizedBox(width: 4),
-                          // ========= PERUBAHAN 2: teks tidak dipotong "..." =========
                           Flexible(
                             child: Text(
                               _memberSinceText(),
@@ -228,9 +284,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 fontSize: 12,
                                 color: Colors.white.withOpacity(0.85),
                               ),
-                              maxLines: 1,
-                              softWrap: false,
-                              overflow: TextOverflow.visible,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -239,9 +293,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Tombol Edit Profile
+                // Tombol Edit Profile – tetap di atas
                 Padding(
-                  padding: const EdgeInsets.only(top: 4.0),
+                  padding: const EdgeInsets.only(bottom: 36.0),
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       final changed = await Navigator.push<bool>(
@@ -251,6 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             initialUsername: username,
                             initialEmail: email,
                             initialPhotoUrl: photoUrl,
+                            initialHealthStats: _healthStats,
                           ),
                         ),
                       );
@@ -342,343 +397,15 @@ class _ProfileScreenState extends State<ProfileScreen>
           },
           body: TabBarView(
             controller: _tabController,
-            children: const [HealthTab(), GoalsTab(), AwardsTab()],
+            children: [
+              HealthTab(
+                healthStats: _healthStats,
+                vitalsUpdatedByUser: _vitalsUpdatedByUser,
+              ),
+              GoalsTab(healthStats: _healthStats),
+              const AwardsTab(),
+            ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// ================== EDIT PROFILE SCREEN ==================
-
-class EditProfileScreen extends StatefulWidget {
-  final String initialUsername;
-  final String initialEmail;
-  final String? initialPhotoUrl;
-
-  const EditProfileScreen({
-    super.key,
-    required this.initialUsername,
-    required this.initialEmail,
-    this.initialPhotoUrl,
-  });
-
-  @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
-}
-
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-
-  late TextEditingController _usernameController;
-  late TextEditingController _emailController;
-
-  File? _pickedImageFile;
-  bool _saving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _usernameController = TextEditingController(text: widget.initialUsername);
-    _emailController = TextEditingController(text: widget.initialEmail);
-  }
-
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final XFile? picked = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 70,
-    );
-
-    if (picked != null) {
-      setState(() {
-        _pickedImageFile = File(picked.path);
-      });
-    }
-  }
-
-  Future<void> _saveProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception('User belum login');
-    }
-
-    final uid = user.uid;
-    final username = _usernameController.text.trim();
-    final email = _emailController.text.trim();
-    String? photoUrl = widget.initialPhotoUrl;
-
-    // upload foto kalau ada
-    if (_pickedImageFile != null) {
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('profile_photos')
-          .child('$uid.jpg');
-
-      await ref.putFile(_pickedImageFile!);
-      photoUrl = await ref.getDownloadURL();
-    }
-
-    // update Firestore
-    final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
-    await docRef.set({
-      'username': username,
-      'email': email,
-      'photoUrl': photoUrl,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-
-    // update Auth displayName & photoURL
-    await user.updateDisplayName(username);
-    if (photoUrl != null && photoUrl.isNotEmpty) {
-      await user.updatePhotoURL(photoUrl);
-    }
-  }
-
-  Future<void> _onSavePressed() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _saving = true);
-    showLoadingDialog(context);
-
-    try {
-      await _saveProfile();
-
-      if (!mounted) return;
-      hideLoadingDialog(context);
-      setState(() => _saving = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profil berhasil diperbarui')),
-      );
-
-      Navigator.pop(context, true);
-    } catch (e) {
-      if (!mounted) return;
-      hideLoadingDialog(context);
-      setState(() => _saving = false);
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal update profil: $e')));
-    }
-  }
-
-  InputDecoration _fieldDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: kPrimaryTealDark, width: 1.4),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.red, width: 1.4),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.red, width: 1.4),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final initial = widget.initialUsername.isNotEmpty
-        ? widget.initialUsername[0].toUpperCase()
-        : 'U';
-
-    return Scaffold(
-      backgroundColor: kProfileBg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // header gradient seperti profil
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-              decoration: const BoxDecoration(gradient: headerGradient),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Edit Profile',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // avatar + tombol kamera
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.white,
-                        backgroundImage: _pickedImageFile != null
-                            ? FileImage(_pickedImageFile!)
-                            : (widget.initialPhotoUrl != null &&
-                                  widget.initialPhotoUrl!.isNotEmpty)
-                            ? NetworkImage(widget.initialPhotoUrl!)
-                                  as ImageProvider
-                            : null,
-                        child:
-                            (_pickedImageFile == null &&
-                                (widget.initialPhotoUrl == null ||
-                                    widget.initialPhotoUrl!.isEmpty))
-                            ? Text(
-                                initial,
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF00838F),
-                                ),
-                              )
-                            : null,
-                      ),
-                      Positioned(
-                        bottom: 4,
-                        right: 4,
-                        child: InkWell(
-                          onTap: _pickImage,
-                          borderRadius: BorderRadius.circular(18),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.black,
-                            ),
-                            padding: const EdgeInsets.all(6),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // body putih dengan field
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Nama Lengkap',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: kTextDark,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _usernameController,
-                        decoration: _fieldDecoration('Masukkan nama lengkap'),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Nama tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      const Text(
-                        'Email',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: kTextDark,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: _fieldDecoration('Masukkan email aktif'),
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Email tidak boleh kosong';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Format email tidak valid';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _saving ? null : _onSavePressed,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: kPrimaryTeal,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          child: _saving
-                              ? const SizedBox(
-                                  height: 18,
-                                  width: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text('Simpan Perubahan'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -721,7 +448,14 @@ class ProfileCard extends StatelessWidget {
 /// ================== TAB 1: KESEHATAN ==================
 
 class HealthTab extends StatelessWidget {
-  const HealthTab({super.key});
+  final HealthStats? healthStats;
+  final bool vitalsUpdatedByUser;
+
+  const HealthTab({
+    super.key,
+    this.healthStats,
+    required this.vitalsUpdatedByUser,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -742,9 +476,93 @@ class HealthTab extends StatelessWidget {
       'Jalan kaki 30 menit setiap hari',
     ];
 
+    final hs = healthStats;
+
+    String cholStatus = 'Tidak ada data';
+    String glucoseStatus = 'Tidak ada data';
+    String bpStatus = 'Tidak ada data';
+    String uricStatus = 'Tidak ada data';
+
+    if (hs != null) {
+      cholStatus = classifyTotalCholesterol(hs.totalCholesterol);
+      glucoseStatus = classifyGlucose(hs.glucose);
+      bpStatus = classifyBloodPressure(hs.systolic, hs.diastolic);
+      uricStatus = classifyUricAcid(hs.uricAcid);
+    }
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
+        if (hs != null)
+          ProfileCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      'Hasil Pemeriksaan Terakhir',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: kTextDark,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    if (vitalsUpdatedByUser)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0F2F1),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: const Text(
+                          'User input',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: kPrimaryTealDark,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _ResultRow(
+                  label: 'Total Kolesterol',
+                  value: hs.totalCholesterol == 0
+                      ? '-'
+                      : '${hs.totalCholesterol.toStringAsFixed(0)} mg/dL',
+                  status: cholStatus,
+                ),
+                _ResultRow(
+                  label: 'Gula Darah',
+                  value: hs.glucose == 0
+                      ? '-'
+                      : '${hs.glucose.toStringAsFixed(0)} mg/dL',
+                  status: glucoseStatus,
+                ),
+                _ResultRow(
+                  label: 'Tekanan Darah',
+                  value: (hs.systolic == 0 || hs.diastolic == 0)
+                      ? '-'
+                      : '${hs.systolic}/${hs.diastolic} mmHg',
+                  status: bpStatus,
+                ),
+                _ResultRow(
+                  label: 'Asam Urat',
+                  value: hs.uricAcid == 0
+                      ? '-'
+                      : '${hs.uricAcid.toStringAsFixed(1)} mg/dL',
+                  status: uricStatus,
+                ),
+              ],
+            ),
+          ),
+
+        // Metric row (dummy, bisa dihubungkan ke data lain)
         ProfileCard(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Row(
@@ -777,7 +595,10 @@ class HealthTab extends StatelessWidget {
             ],
           ),
         ),
+
         const SizedBox(height: 8),
+
+        // Kondisi medis
         ProfileCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,6 +656,8 @@ class HealthTab extends StatelessWidget {
             ],
           ),
         ),
+
+        // Alergi
         ProfileCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -879,6 +702,8 @@ class HealthTab extends StatelessWidget {
             ],
           ),
         ),
+
+        // Rekomendasi
         ProfileCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -919,6 +744,46 @@ class HealthTab extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ResultRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final String status;
+
+  const _ResultRow({
+    required this.label,
+    required this.value,
+    required this.status,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = statusColor(status);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 13, color: kTextDark),
+            ),
+          ),
+          Text(value, style: const TextStyle(fontSize: 13, color: kTextGrey)),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: c.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(status, style: TextStyle(fontSize: 11, color: c)),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1026,14 +891,21 @@ class VitalsData {
 }
 
 class GoalsTab extends StatelessWidget {
-  const GoalsTab({super.key});
+  final HealthStats? healthStats;
+
+  const GoalsTab({super.key, this.healthStats});
 
   @override
   Widget build(BuildContext context) {
+    final hs = healthStats;
+
+    final double weight = hs?.weightKg ?? 78;
+    final bpmBmi = hs?.bmi;
+
     final goals = [
       GoalData(
         title: 'Target Penurunan Berat Badan',
-        current: 78,
+        current: weight,
         target: 75,
         unit: 'kg',
       ),
@@ -1060,13 +932,13 @@ class GoalsTab extends StatelessWidget {
     final vitals = [
       VitalsData(
         label: 'Berat Badan',
-        value: '78 kg',
+        value: weight == 0 ? '-' : '${weight.toStringAsFixed(1)} kg',
         change: '-1.5',
         icon: Icons.scale_outlined,
       ),
       VitalsData(
         label: 'IMT',
-        value: '25.3',
+        value: bpmBmi == null ? '-' : bpmBmi.toStringAsFixed(1),
         change: '+0.4',
         icon: Icons.straighten,
       ),
@@ -1078,8 +950,12 @@ class GoalsTab extends StatelessWidget {
       ),
       VitalsData(
         label: 'Tekanan Darah',
-        value: '135/85 mmHg',
-        change: 'Perlu perhatian',
+        value: (hs == null || hs.systolic == 0 || hs.diastolic == 0)
+            ? '-'
+            : '${hs.systolic}/${hs.diastolic} mmHg',
+        change: hs == null
+            ? 'Perlu perhatian'
+            : classifyBloodPressure(hs.systolic, hs.diastolic),
         icon: Icons.monitor_heart_outlined,
       ),
     ];

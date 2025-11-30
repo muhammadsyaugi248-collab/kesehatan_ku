@@ -10,7 +10,7 @@ String formatPrice(double price) {
   for (int i = priceStr.length - 1, count = 0; i >= 0; i--, count++) {
     result = priceStr[i] + result;
     if (count % 3 == 2 && i != 0) {
-      result = '.' + result;
+      result = '.$result';
     }
   }
   return result;

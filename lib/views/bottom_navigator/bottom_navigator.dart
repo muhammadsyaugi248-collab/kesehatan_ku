@@ -3,6 +3,7 @@ import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/views/halaman/deskop.dart';
 import 'package:kesehatan_ku/views/halaman/healtyhalaman1.dart';
+// import 'package:kesehatan_ku/views/halaman/healtyhalaman1.dart';
 import 'package:kesehatan_ku/views/halaman/profile/screen/profile_screen.dart';
 import 'package:kesehatan_ku/views/halaman/scaninghalaman2.dart';
 import 'package:kesehatan_ku/views/halaman/settinghalaman4.dart';

@@ -79,7 +79,7 @@ class scaning extends StatelessWidget {
             ).copyWith(
               secondary: const Color(0xFF8E6CEF), // Aksen
               primary: const Color(0xFF6B45CC), // Ungu utama
-              background: const Color.fromARGB(
+              surface: const Color.fromARGB(
                 255,
                 201,
                 231,
@@ -115,7 +115,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   // Contoh daftar booking (dengan status baru: cancelled, hasRated)
-  List<Booking> _bookings = [
+  final List<Booking> _bookings = [
     Booking(
       id: 'BK-20251115-001',
       service: 'Konsultasi Dokter Umum',
@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text('KesehatanKu'),
         actions: [
@@ -231,14 +231,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 15),
             // Daftar Booking
-            ..._bookings
-                .map(
-                  (booking) => Padding(
-                    padding: const EdgeInsets.only(bottom: 15.0),
-                    child: _buildBookingCard(context, booking),
-                  ),
-                )
-                .toList(),
+            ..._bookings.map(
+              (booking) => Padding(
+                padding: const EdgeInsets.only(bottom: 15.0),
+                child: _buildBookingCard(context, booking),
+              ),
+            ),
             const SizedBox(height: 40), // Spasi di bagian bawah
           ],
         ),

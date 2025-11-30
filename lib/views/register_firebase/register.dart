@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:kesehatan_ku/models/userfirebasemodel.dart';
 import 'package:kesehatan_ku/services/firebase.dart';
 import 'package:kesehatan_ku/views/login_firebase/login.dart';
@@ -133,7 +133,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FBFE),
+      // ⬇⬇⬇ DI SINI YANG DIGANTI
+      backgroundColor: const Color.fromARGB(255, 201, 231, 226),
+      // sebelumnya: Color(0xFFF8FBFE)
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -341,18 +343,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   const SizedBox(height: 16),
 
                   // Guest
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => LoginScreen()),
-                      );
-                    },
-                    child: const Text(
-                      'Continue as Guest',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                  ),
+                  // TextButton(
+                  //   onPressed: () {
+                  //     Navigator.pushReplacement(
+                  //       context,
+                  //       MaterialPageRoute(builder: (context) => LoginScreen()),
+                  //     );
+                  //   },
+                  //   child: const Text(
+                  //     'Continue as Guest',
+                  //     style: TextStyle(color: Colors.grey, fontSize: 14),
+                  //   ),
+                  // ),
                 ],
               ),
             ),
